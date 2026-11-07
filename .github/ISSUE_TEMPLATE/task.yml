@@ -1,0 +1,37 @@
+name: Repository task
+description: Track a repository-level task linked to the team's Jira workflow.
+title: "[TASK] "
+labels:
+  - task
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use only when the team agrees to mirror this repository-level task in GitHub.
+        Jira remains the source of truth for assignment and status.
+  - type: input
+    id: jira_key
+    attributes:
+      label: Jira issue key
+      placeholder: KP-123
+    validations:
+      required: true
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objective
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope and deliverables
+    validations:
+      required: true
+  - type: textarea
+    id: completion
+    attributes:
+      label: Definition of done
+      description: List verifiable completion conditions.
+    validations:
+      required: true

@@ -1,36 +1,146 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Kestara
 
-## Getting Started
+**Inclusive Career Development and Recruitment Platform**
 
-First, run the development server:
+Kestara is a career-development and recruitment platform intended to connect job seekers, mentors, recruiters, and companies through professional profiles, job opportunities, micro-learning, skill assessments, mentorship, and community features.
+
+> **Project status:** The repository currently contains a legacy Next.js, NextAuth, Prisma, and MySQL implementation. Supabase is the approved target backend for the planned full migration, but the Supabase project has not yet been created and the migration is not complete.
+
+## Planned modules
+
+1. Account and user profile management
+2. Job vacancy management
+3. Micro-learning content management
+4. Company partner management
+5. Job applications and blind profiles
+6. Skill assessments
+7. Mentorship schedules and sessions
+8. Community discussion forum
+
+## User roles
+
+- **Jobseeker:** professional profile, skills, portfolio, job discovery, applications, learning, assessments, mentorship, and community participation.
+- **Mentor:** professional profile, skills, portfolio, mentorship availability, and mentoring sessions.
+- **Recruiter:** professional profile, skills, portfolio, company and vacancy management, and candidate/application review according to authorization rules.
+- **Admin:** controlled administrative management of users and platform content.
+
+Public registration is intended for Jobseeker, Mentor, and Recruiter. Admin accounts must be provisioned through a controlled administrative process.
+
+## Technology stack
+
+### Current repository implementation
+
+| Area | Current technology |
+|---|---|
+| Web framework | Next.js 16.4.5 |
+| UI library | React 19.3.0 |
+| Language | TypeScript 5.x |
+| Styling | Tailwind CSS 4.x |
+| Authentication | NextAuth 4.24.15 |
+| ORM | Prisma 5.22.0 |
+| Database configuration | MySQL |
+| Password utility | bcryptjs |
+| Linting | ESLint 9 |
+
+These versions are taken from the repository's `package.json`. Check source code and configuration before describing an integration as complete.
+
+### Approved target direction
+
+The planned full migration targets Supabase Auth, Supabase PostgreSQL, Supabase Storage, and PostgreSQL Row Level Security (RLS). The target architecture follows the Three-Tier Architecture documented in `docs/architecture/`.
+
+**Supabase is not yet integrated.** Do not assume credentials, a remote database, buckets, policies, or migrations already exist.
+
+## Documentation
+
+Start with [`docs/README.md`](docs/README.md) and [`AGENTS.md`](AGENTS.md).
+
+| Directory | Contents |
+|---|---|
+| `docs/project/` | Project overview, scope, team structure |
+| `docs/requirements/` | Requirements, backlog, acceptance criteria |
+| `docs/architecture/` | System, frontend, and Supabase architecture |
+| `docs/database/` | Schema, ERD, RLS, storage policies |
+| `docs/design/` | Green Teal design system and UI/UX references |
+| `docs/development/` | Installation, coding, Git, testing, maintenance |
+| `docs/decisions/` | Project decision log |
+| `docs/ai/` | AI coding-agent instructions and workflows |
+
+## Getting started
+
+### Prerequisites
+
+- Node.js compatible with the installed Next.js release
+- npm
+- Local MySQL configured to match `prisma/schema.prisma`
+
+### Installation
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/Kestara-Portal/Kestara.git
+cd Kestara
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Create a local environment file:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**PowerShell**
+```powershell
+Copy-Item .env.example .env
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+**macOS / Linux**
+```bash
+cp .env.example .env
+```
 
-## Learn More
+Update `DATABASE_URL` in `.env` to match your local MySQL database and `prisma/schema.prisma`.
 
-To learn more about Next.js, take a look at the following resources:
+Generate the Prisma client and start the development server:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npx prisma generate
+npm run dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Open [http://localhost:3000](http://localhost:3000).
 
-## Deploy on Vercel
+> Database migration and seeding commands are intentionally not prescribed here. Inspect the current Prisma schema and migration history, then follow the approved team procedure. Do not run destructive database commands against shared data.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Available scripts
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+These scripts are currently defined in `package.json`:
+
+| Command | Purpose |
+|---|---|
+| `npm run dev` | Start development server |
+| `npm run build` | Build application |
+| `npm run start` | Start production server |
+| `npm run lint` | Run ESLint |
+
+There is currently no `test` or `typecheck` script declared in the supplied `package.json`. Do not report those checks as passing unless the team adds and runs them.
+
+## Environment and security
+
+- Never commit `.env`, `.env.local`, production environment files, credentials, tokens, or private keys.
+- `.env.example` is a placeholder and must contain no real secrets.
+- Keep privileged Supabase keys server-side if and when Supabase is implemented.
+- Enforce authorization in server-side logic and database policies; hiding UI controls is not authorization.
+- Do not place private candidate documents or sensitive uploads in publicly readable storage.
+
+## Team workflow
+
+Jira is used to manage assignments and work status. GitHub stores source code and code review history.
+
+- Work on a dedicated branch; do not develop directly on `main`.
+- Include the real Jira issue key in branch names, commits, and pull requests where applicable.
+- Push work to your own remote branch.
+- Open a Pull Request targeting `main`.
+- Request review from another team member before merging.
+- Do not force-push, rewrite shared history, or change repository settings without authorization.
+- Do not create a `develop` branch unless the PM/team explicitly agrees.
+
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) and `docs/development/git-workflow.md`.
+
+## Project identity
+
+The approved visual direction is **Green Teal**, with primary brand color `#176B62`. See `docs/design/ui-ux-references.md`. Use reference products for UX inspiration, not for copying their identity or exact layouts.
