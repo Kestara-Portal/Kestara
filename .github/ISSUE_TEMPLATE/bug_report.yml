@@ -1,0 +1,61 @@
+name: Bug report
+description: Report a reproducible defect in Kestara.
+title: "[BUG] "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Check whether this defect is already tracked. If a Jira issue exists, include its key.
+  - type: input
+    id: jira_key
+    attributes:
+      label: Jira issue key (if available)
+      description: Use the real key from the Kestara Jira board. Do not invent one.
+      placeholder: KP-123
+    validations:
+      required: false
+  - type: textarea
+    id: summary
+    attributes:
+      label: Bug summary
+      description: Explain what is wrong.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open ...
+        2. Select ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Browser, operating system, and relevant app version. Do not include secrets.
+    validations:
+      required: false
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Remove tokens, credentials, and personal data from screenshots or logs.
+    validations:
+      required: false

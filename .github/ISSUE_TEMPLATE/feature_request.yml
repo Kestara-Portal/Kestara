@@ -1,0 +1,60 @@
+name: Feature request
+description: Propose a product or technical improvement for Kestara.
+title: "[FEATURE] "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Jira remains the team's work-management source of truth. Link an existing Jira issue if available.
+  - type: input
+    id: jira_key
+    attributes:
+      label: Jira issue key (if available)
+      placeholder: KP-123
+    validations:
+      required: false
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or user need
+      description: Who experiences the problem, and why does it matter?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: List observable conditions for completion.
+    validations:
+      required: true
+  - type: dropdown
+    id: module
+    attributes:
+      label: Kestara module
+      options:
+        - Account and user profile
+        - Job vacancies
+        - Micro-learning
+        - Company partners
+        - Job applications and blind profile
+        - Skill assessment
+        - Mentorship
+        - Community forum
+        - Cross-module / infrastructure
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional context
+      description: Add relevant design references or constraints. Do not include private user data.
+    validations:
+      required: false
