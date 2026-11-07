@@ -52,7 +52,9 @@ For every assigned Jira issue:
 - Do not bypass RLS to make a test pass.
 - Do not delete Prisma/NextAuth/MySQL code until migration and regression checks are complete.
 - Do not create production SQL migrations from the conceptual ERD without approval.
-- Do not push, force-push, merge, or rewrite Git history during the repository maintenance freeze.
+- Push completed work to the appropriate dedicated remote branch after verification.
+- Use Pull Requests for integration into shared branches.
+- Never force-push, rewrite shared history, or merge without the required review and authorization.
 - Do not claim tests passed unless they were actually run.
 
 ## 5. Required Completion Report
@@ -81,4 +83,4 @@ Stop before implementation if:
 - Blind Profile or matching-score behavior is unspecified.
 - Database migration may destroy or transform existing data.
 - A secret, credential, or personal-data exposure is suspected.
-- The task requires push/merge while the freeze is active.
+- The task requires force-push, shared history rewriting, or merging without required review or authorization.

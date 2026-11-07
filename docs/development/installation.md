@@ -67,4 +67,8 @@ Type-check and test commands may differ. Check the scripts section before runnin
 
 ## 8. Contribution Safety
 
-The repository is currently under a temporary push freeze instructed by the Project Owner. Local setup and local work may continue, but do not push, merge, or rewrite remote history until the freeze is lifted.
+The temporary repository push freeze has been lifted by the Project Owner.
+
+Developers may push completed work to their dedicated branches and use Pull Requests for integration.
+
+Never push directly to main, force-push shared branches, or rewrite shared history without explicit authorization.

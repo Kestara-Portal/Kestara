@@ -2,7 +2,7 @@
 
 > **Status:** Draft proposal  
 > **Current known state from audit:** only `main` was visible locally/remotely; no `develop` branch was confirmed.  
-> **Maintenance rule:** push freeze remains active until the Project Owner explicitly lifts it.
+> **Maintenance rule:** The temporary push freeze has been lifted by the Project Owner. Use dedicated branches and Pull Requests for collaboration.
 
 ## 1. Repository Principles
 
@@ -85,15 +85,19 @@ Every PR should state:
 - Resolve review comments or document why a comment is not applied.
 - Protect `main` after PM/Admin approval of branch protection settings.
 
-## 7. Temporary Maintenance Freeze
+## 7. Repository Collaboration Rules
 
-Until explicitly lifted by the Project Owner:
-- No `git push`.
-- No `git push --force`.
-- No merge to remote.
-- No history rewrite or reset of shared commits.
-- Do not alter branch protection or repository settings without approval.
-- Prepare and review changes locally.
+The temporary repository maintenance freeze has been lifted.
+
+Normal branch-based collaboration is permitted.
+
+- Push work to dedicated feature, fix, or documentation branches.
+- Do not push directly to main.
+- Use Pull Requests for integration.
+- Review changes before merging.
+- Coordinate shared changes with the relevant team members.
+- Never force-push or rewrite shared history without explicit authorization.
+- Follow the PM-approved branch strategy.
 
 ## 8. Safe Local Checks
 
@@ -103,7 +107,7 @@ git diff --check
 git diff
 ```
 
-Before committing after the freeze is lifted:
+Before pushing a branch:
 
 ```bash
 git fetch origin

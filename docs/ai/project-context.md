@@ -55,7 +55,7 @@ One module = one Epic. Each CRUD operation (Create, Read, Update, Delete) is a s
 - `docs/`: requirements and reviewed technical context.
 - DeepSeek: coding agent.
 - ChatGPT: context/review support.
-- Repository push freeze remains active until owner lifts it.
+- Repository push freeze has been lifted by the Project Owner. Normal branch-based collaboration is permitted.
 
 ## Important Unknowns
 

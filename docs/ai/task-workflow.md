@@ -45,7 +45,9 @@ Approval is required for schema changes, RLS changes, destructive operations, ne
 - Keep changes small and reviewable.
 - Do not change shared configuration without approval.
 - Do not commit secrets or generated artifacts.
-- Do not push or merge during the current freeze.
+- Push verified commits to the assigned remote branch.
+- Submit Pull Requests for integration.
+- Do not merge without the required review and approval.
 
 ## 5. Verification
 

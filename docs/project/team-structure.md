@@ -39,12 +39,20 @@ If the team has not formally named a Product Owner or Technical Lead, ask the PM
 - `docs/` records reviewed requirements and technical decisions.
 - Team chat is for coordination; decisions that affect scope or architecture must be copied into Jira or the decision log.
 
-## 4. Current Repository Maintenance Rule
+## 4. Repository Collaboration Rules
 
-The Project Owner instructed members not to push while the repository is being cleaned up. This freeze remains active until the Project Owner explicitly lifts it.
+The temporary repository push freeze was explicitly lifted by the Project Owner on 2026-11-07.
 
-During the freeze:
-- Do not push, force-push, merge, or rewrite remote history.
-- Do not change GitHub branch protection or repository settings without approval.
-- Local documentation work and local review are permitted.
-- Coordinate any urgent shared-repository change with the Project Owner.
+Team members may now:
+- Push work to their dedicated branches.
+- Create feature, fix, and documentation branches.
+- Submit Pull Requests for review.
+- Continue local and remote development.
+
+Team members must:
+- Avoid direct pushes to main.
+- Coordinate cross-module changes with relevant members.
+- Follow the agreed Jira assignments.
+- Avoid force-pushing or rewriting shared history without authorization.
+
+The PM remains responsible for coordinating the team's development workflow.

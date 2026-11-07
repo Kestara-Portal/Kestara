@@ -17,7 +17,7 @@
 | DEC-011 | Primary color draft | `#176B62` | Used in documentation; confirm with approved UI design |
 | DEC-012 | Jira decomposition | One module = one Epic; Create/Read/Update/Delete each separate PBI/User Story | Based on lecturer clarification supplied by owner |
 | DEC-013 | Jira board | Existing board; 8+ members; roles assigned | Exact member names/assignments remain in Jira |
-| DEC-014 | GitHub push freeze | Members instructed not to push during repository cleanup | Remains active until owner lifts it |
+| DEC-014 | GitHub push freeze | Temporary push freeze during repository cleanup | Lifted by Project Owner on 2026-11-07; normal branch-based workflow is permitted |
 | DEC-015 | AI workflow | ChatGPT as context/review support; DeepSeek as coder | Working arrangement supplied by owner |
 | DEC-016 | Repository connection | Owner does not want to connect GitHub account to ChatGPT | Manual ZIP/command workflow |
 

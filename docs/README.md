@@ -86,7 +86,7 @@ Dokumentasi ini menjadi knowledge base produk dan teknis untuk tim Kestara serta
 9. Jira decomposition: one module = one Epic; each CRUD operation = separate PBI/User Story.
 10. Eight modules therefore map to 32 CRUD PBI references. Actual issue keys must come from the existing Jira board.
 11. Jira is the work-status source of truth; GitHub is the code source of truth; docs contain reviewed requirements and technical context.
-12. Repository push freeze remains active until the Project Owner explicitly lifts it.
+12. The temporary repository push freeze has been lifted by the Project Owner. Normal branch-based development may proceed under the approved Git workflow.
 
 ## Source of Truth
 

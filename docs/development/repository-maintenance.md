@@ -26,7 +26,7 @@
 - [ ] Add CI workflow after scripts and test tools are verified.
 - [ ] Perform a secret scan using an approved tool; rotate any exposed credential.
 - [ ] Review unused dependencies and Prisma/NextAuth references before removal.
-- [ ] Lift push freeze only with explicit owner approval.
+- [x] Push freeze lifted by Project Owner on 2026-11-07.
 
 ## Safety
 
