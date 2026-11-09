@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 export default function RegisterPage() {
   const router = useRouter();
 
+  // State untuk menyimpan data form
   const [role, setRole] = useState<'pencari' | 'mentor' | 'rekruter'>('pencari');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
