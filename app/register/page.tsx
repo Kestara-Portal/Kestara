@@ -17,7 +17,6 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Fungsi untuk mengirim data ke API
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -35,14 +34,14 @@ export default function RegisterPage() {
 
       if (res.ok) {
         alert('Registrasi berhasil! Silakan login.');
-        router.push('/login'); // Arahkan ke halaman login
+        router.push('/login');
       } else {
         alert(data.message || 'Gagal mendaftar');
       }
-    } catch (error) {
-      alert('Terjadi kesalahan sistem');
-    } finally {
+    } catch (error: any) {
       setIsLoading(false);
+      alert('Error Sistem: ' + error.message);
+      console.error(error);
     }
   };
 
