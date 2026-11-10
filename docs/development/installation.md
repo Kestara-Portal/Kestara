@@ -1,74 +1,95 @@
 # Kestara — Local Development Setup
 
-> **Status:** Draft. Confirm exact scripts and versions from the current `package.json` before publishing this as final setup instructions.
+> Status: reflects the current repository (Supabase foundation added; legacy MySQL/Prisma/NextAuth still present until migration is verified).
 
 ## 1. Prerequisites
 
-- Git.
-- Node.js version compatible with the repository's Next.js version.
-- The package manager indicated by the committed lockfile (npm, pnpm, or yarn).
-- A code editor.
-- Local environment configuration supplied securely by the project maintainer.
+- Git
+- Node.js compatible with Next.js 16 (Node 24 used by the team environment)
+- npm (matching `package-lock.json`)
+- Docker Desktop (required for local Supabase)
+- Supabase CLI (available via the project devDependency `supabase`)
 
-Supabase setup is not yet available according to the last project status. Do not invent project URL or keys.
-
-## 2. Clone the Repository
+## 2. Clone and install
 
 ```bash
 git clone https://github.com/Kestara-Portal/Kestara.git
 cd Kestara
-```
-
-## 3. Install Dependencies
-
-Use only the package manager matching the committed lockfile.
-
-```bash
 npm install
 ```
 
-If the repository uses `pnpm-lock.yaml` or `yarn.lock`, use the corresponding package manager and its frozen/immutable install mode instead. Do not create multiple lockfiles.
+## 3. Environment configuration
 
-## 4. Environment Configuration
-
-- Copy the approved example environment file to the local environment filename required by the app.
-- Obtain values through the project maintainer's secure channel.
-- Never commit `.env`, `.env.local`, real keys, or database passwords.
-- Do not put Supabase secret/service-role keys in `NEXT_PUBLIC_*` variables.
-- The current legacy MySQL/Prisma setup and future Supabase setup must be documented separately during migration.
-
-## 5. Run the Application
-
-Check `package.json` scripts first. If a `dev` script exists:
-
-```bash
-npm run dev
+```powershell
+Copy-Item .env.example .env.local
 ```
 
-Open `http://localhost:3000`.
+```bash
+cp .env.example .env.local
+```
 
-## 6. Verification Commands
+Fill values securely (see `docs/development/environment.md`). Never commit `.env.local`, `.env`, or real keys.
 
-Run only scripts that exist in the current `package.json`:
+File split (important):
+
+- `.env.local` — Supabase credentials + Next.js overrides (higher priority for Next.js).
+- `.env` — legacy `DATABASE_URL` (Prisma 5 CLI reads **only** `.env`) and optional `NEXTAUTH_*`.
+- Node scripts load `.env` then `.env.local` (`.env.local` wins).
+
+## 4. Run the app
 
 ```bash
+npm run dev      # http://localhost:3000
+```
+
+The Supabase auth routes are available at `/auth/login` and `/auth/register`. The legacy `/login` and `/register` pages still work with NextAuth/Prisma.
+
+## 5. Local Supabase
+
+See `docs/development/supabase-local.md`. Summary:
+
+```bash
+npm run db:start
+npx supabase status
+npm run db:reset      # LOCAL ONLY
+npm run seed:users
+```
+
+## 6. Available scripts
+
+| Command | Purpose |
+|---|---|
+| `npm run dev` | Start Next.js dev server |
+| `npm run build` | Production build |
+| `npm run start` | Start production server |
+| `npm run lint` | ESLint |
+| `npm run typecheck` | TypeScript `--noEmit` |
+| `npm run test` | Vitest unit tests |
+| `npm run test:watch` | Vitest watch mode |
+| `npm run db:start` / `db:stop` | Start/stop local Supabase |
+| `npm run db:reset` | Reset LOCAL database (migrations + seed) |
+| `npm run db:test` | pgTAP database tests |
+| `npm run test:rls` | E01 RLS integration checks |
+| `npm run seed:users` | Create synthetic dev users |
+| `npm run provision:admin` | Controlled admin provisioning |
+| `npm run db:push` / `db:diff` | Remote push / diff (remote: preflight + approval only) |
+
+## 7. Verification
+
+```bash
+npm run typecheck
 npm run lint
+npm run test
 npm run build
 ```
 
-Type-check and test commands may differ. Check the scripts section before running or documenting them.
+## 8. Troubleshooting
 
-## 7. Troubleshooting
+- Docker errors → ensure Docker Desktop is running before `db:start`.
+- Supabase env errors → verify `.env.local` names; never paste secrets into chat.
+- Database errors → confirm whether the branch uses legacy MySQL/Prisma or local Supabase.
+- Build errors → read the first relevant error before changing configuration.
 
-- Dependency errors: confirm Node.js and package-manager versions.
-- Environment errors: verify local variable names and do not paste secrets into chat.
-- Database errors: confirm whether the branch still uses legacy MySQL/Prisma or has migrated to Supabase.
-- Build errors: inspect the first relevant error and reproduce before changing configuration.
+## 9. Legacy migration note
 
-## 8. Contribution Safety
-
-The temporary repository push freeze has been lifted by the Project Owner.
-
-Developers may push completed work to their dedicated branches and use Pull Requests for integration.
-
-Never push directly to main, force-push shared branches, or rewrite shared history without explicit authorization.
+MySQL + Prisma + NextAuth are retained until the Supabase replacement passes regression testing. Do not remove them during migration work.

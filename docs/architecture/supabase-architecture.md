@@ -3,7 +3,7 @@
 > **Status:** Draft — requires Project Owner/PM and technical review  
 > **Target:** Supabase PostgreSQL, Auth, Storage, and RLS  
 > **Migration strategy:** Full migration from the existing MySQL/Prisma/NextAuth implementation  
-> **Current Supabase project status:** Not created (last status supplied by Project Owner)
+> **Current Supabase project status:** Created and confirmed by Project Owner (ref `yzactdxbzzuskdfituzx`). Foundation implemented locally; **remote database not modified** during foundation work.
 
 ## 1. Purpose and Architecture Context
 
@@ -343,4 +343,4 @@ Check current official documentation and the locally installed package versions 
 
 ---
 
-**Status:** Draft. This document describes the selected target platform and proposed integration boundaries. It is not evidence that the Supabase project or migration has been completed.
+**Status:** Draft. This document describes the selected target platform and integration boundaries. The Supabase project exists (owner-confirmed) and the E01 foundation (schema, RLS, auth provisioning, storage policies, SSR clients) is implemented in local migration/code files, but **remote migrations have not been applied** and DB/RLS integration tests are pending a running local Docker environment.

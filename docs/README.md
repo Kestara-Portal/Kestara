@@ -58,10 +58,17 @@ Dokumentasi ini menjadi knowledge base produk dan teknis untuk tim Kestara serta
 
 | Dokumen | Status |
 |---|---|
-| [`development/installation.md`](development/installation.md) | Draft |
+| [`development/installation.md`](development/installation.md) | Updated for foundation |
+| [`development/environment.md`](development/environment.md) | Foundation |
+| [`development/architecture-guide.md`](development/architecture-guide.md) | Foundation |
+| [`development/supabase-local.md`](development/supabase-local.md) | Foundation |
+| [`development/authentication.md`](development/authentication.md) | Foundation |
+| [`development/security-rls.md`](development/security-rls.md) | Foundation |
+| [`development/storage.md`](development/storage.md) | Foundation |
+| [`development/pbi-implementation-guide.md`](development/pbi-implementation-guide.md) | Foundation |
 | [`development/git-workflow.md`](development/git-workflow.md) | Draft |
 | [`development/coding-standards.md`](development/coding-standards.md) | Draft |
-| [`development/testing-guide.md`](development/testing-guide.md) | Draft |
+| [`development/testing-guide.md`](development/testing-guide.md) | Updated for foundation |
 | [`development/repository-maintenance.md`](development/repository-maintenance.md) | Draft |
 
 ## Decisions and AI
@@ -78,7 +85,7 @@ Dokumentasi ini menjadi knowledge base produk dan teknis untuk tim Kestara serta
 1. Product name: Kestara.
 2. Architecture style: Three-Tier Architecture (Presentation, Application, Data).
 3. Target backend: Supabase PostgreSQL, Auth, Storage, and RLS.
-4. Supabase status at last owner update: `not_created`.
+4. Supabase project created and confirmed by the Project Owner (ref `yzactdxbzzuskdfituzx`); E01 foundation implemented locally, remote migrations not yet applied.
 5. Migration strategy: full migration from legacy MySQL/Prisma/NextAuth.
 6. Roles: Jobseeker, Mentor, Recruiter, Admin. Public registration excludes Admin.
 7. Skills Matrix and Portfolio apply to Jobseeker, Mentor, and Recruiter.

@@ -37,9 +37,10 @@ One module = one Epic. Each CRUD operation (Create, Read, Update, Delete) is a s
 - Architecture style: Three-Tier Architecture.
 - Current previously audited stack: Next.js, React, TypeScript, Tailwind CSS, NextAuth, Prisma, MySQL. Verify current repository state.
 - Target backend: Supabase PostgreSQL, Auth, Storage, RLS.
-- Supabase status: `not_created` at the last owner update.
+- Supabase status: project created and confirmed by Project Owner (ref `yzactdxbzzuskdfituzx`). Foundation migrations/clients exist locally; remote was **not** modified.
 - Migration strategy: full migration.
 - Do not remove legacy stack until replacement and regression tests pass.
+- Current foundation facts: E01 migrations (users/user_skills/portfolio_items + RLS + auth provisioning + storage), Supabase clients, auth routes at `/auth/*`, unit tests + typecheck/build passing. DB/RLS integration tests pending Docker.
 
 ## Design
 

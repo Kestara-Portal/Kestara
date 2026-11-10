@@ -1,9 +1,9 @@
 # Kestara — Database Schema Blueprint
 
-> **Status:** Draft / Proposed  
-> **Target:** Supabase PostgreSQL  
-> **Scope:** Initial entity inventory and schema conventions for all eight modules  
-> **Implementation status:** No Supabase project or approved migration schema exists yet, based on the latest project status supplied by the owner.
+> **Status:** Draft / Proposed (E01 partially implemented locally)
+> **Target:** Supabase PostgreSQL
+> **Scope:** Initial entity inventory and schema conventions for all eight modules
+> **Implementation status:** Supabase project confirmed by Project Owner. E01 tables (`users`, `user_skills`, `portfolio_items`), RLS, auth provisioning, and E01 storage policies are implemented as local SQL migrations in `supabase/migrations/`. Remote migrations have **not** been applied. Modules E02–E08 remain proposed.
 
 ## 1. How to Read This Blueprint
 

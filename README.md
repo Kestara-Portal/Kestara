@@ -4,7 +4,7 @@
 
 Kestara is a career-development and recruitment platform intended to connect job seekers, mentors, recruiters, and companies through professional profiles, job opportunities, micro-learning, skill assessments, mentorship, and community features.
 
-> **Project status:** The repository currently contains a legacy Next.js, NextAuth, Prisma, and MySQL implementation. Supabase is the approved target backend for the planned full migration, but the Supabase project has not yet been created and the migration is not complete.
+> **Project status:** The Supabase project has been created and confirmed by the Project Owner. The E01 development foundation (PostgreSQL schema, RLS, auth provisioning, storage policies, SSR clients, testing) is implemented locally; remote migrations have not yet been applied. The legacy Next.js/NextAuth/Prisma/MySQL stack is retained until the migration passes regression testing.
 
 ## Planned modules
 
@@ -48,7 +48,7 @@ These versions are taken from the repository's `package.json`. Check source code
 
 The planned full migration targets Supabase Auth, Supabase PostgreSQL, Supabase Storage, and PostgreSQL Row Level Security (RLS). The target architecture follows the Three-Tier Architecture documented in `docs/architecture/`.
 
-**Supabase is not yet integrated.** Do not assume credentials, a remote database, buckets, policies, or migrations already exist.
+The Supabase foundation is implemented in local migration and code files. The remote project has **not** had migrations applied, and buckets/policies exist only as local migrations until the preflight procedure is completed.
 
 ## Documentation
 
@@ -116,8 +116,17 @@ These scripts are currently defined in `package.json`:
 | `npm run build` | Build application |
 | `npm run start` | Start production server |
 | `npm run lint` | Run ESLint |
+| `npm run typecheck` | TypeScript `--noEmit` |
+| `npm run test` | Vitest unit tests |
+| `npm run test:watch` | Vitest watch mode |
+| `npm run db:start` / `db:stop` | Start/stop local Supabase |
+| `npm run db:reset` | Reset LOCAL database (migrations + seed) |
+| `npm run db:test` | pgTAP database tests |
+| `npm run test:rls` | E01 RLS integration checks |
+| `npm run seed:users` | Create synthetic dev users |
+| `npm run provision:admin` | Controlled admin provisioning |
 
-There is currently no `test` or `typecheck` script declared in the supplied `package.json`. Do not report those checks as passing unless the team adds and runs them.
+See `docs/development/` for the full guides. Do not report a check as passing unless it was actually run.
 
 ## Environment and security
 

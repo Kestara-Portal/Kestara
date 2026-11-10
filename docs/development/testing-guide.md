@@ -91,6 +91,24 @@ Testing for a PBI is complete when:
 - Known limitations are recorded.
 - Evidence is linked to Jira/PR.
 
-## 6. Tool Selection
+## 6. Current Tooling (Foundation)
 
-Do not add Playwright, Vitest, Jest, Cypress, or other tooling until the existing repository has been audited and the team approves the test stack. Prefer the project's existing tools if they are suitable.
+The development foundation adopted the following tools. Extend them rather than adding parallel stacks.
+
+| Layer | Tool / command | Notes |
+|---|---|---|
+| Static | `npm run typecheck` | `tsc --noEmit` |
+| Static | `npm run lint` | ESLint 9 + eslint-config-next |
+| Static | `npm run build` | Next.js production build |
+| Unit | `npm run test` | Vitest (`tests/unit/`) |
+| Database / RLS | `npm run test:rls` | Node integration checks (needs local Supabase) |
+| Database | `npm run db:test` | pgTAP via `supabase test db` |
+
+Playwright/Cypress E2E is not adopted yet. Add it only with team approval and a documented scope.
+
+### Current verification status (foundation)
+
+- `typecheck`, `lint`, `test` (16 unit tests), `build`: **PASS**.
+- Runtime smoke test (`next start`): `/`, `/auth/login`, `/auth/register` return HTTP 200.
+- Local Supabase: `db reset` applied all 6 migrations cleanly and ran the seed.
+- Database / RLS / Auth / Storage integration (`npm run test:rls`): **PASS — 28/28 checks** (anon denial, own-read, cross-user denial, role/status protection, provisioning, admin escalation blocked, login/logout/session, storage isolation, suspended-account mutation/upload denial).
