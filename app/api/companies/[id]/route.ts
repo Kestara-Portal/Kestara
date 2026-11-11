@@ -45,3 +45,4 @@ export async function DELETE(request: Request, context: RouteParams) {
     return jsonError("INTERNAL_ERROR", "Terjadi kesalahan saat menghapus perusahaan.", 500);
   }
 }
+

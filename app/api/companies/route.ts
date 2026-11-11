@@ -29,3 +29,4 @@ export async function GET() {
     return jsonError("INTERNAL_ERROR", "Gagal memuat daftar perusahaan.", 500);
   }
 }
+

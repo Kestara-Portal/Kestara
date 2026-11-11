@@ -110,3 +110,4 @@ grant insert, update, delete on public.companies to authenticated;
 
 grant select on public.jobs to authenticated, anon;
 grant insert, update, delete on public.jobs to authenticated;
+
