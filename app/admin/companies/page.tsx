@@ -78,6 +78,7 @@ type FilterTab = "all" | "active" | "deleted";
 export default function AdminCompaniesPage() {
   const [companies, setCompanies] = useState<CompanyWithJobCount[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(
@@ -87,6 +88,25 @@ export default function AdminCompaniesPage() {
   // State untuk modal konfirmasi penghapusan (KP-32)
   const [selectedCompany, setSelectedCompany] = useState<CompanyWithJobCount | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    try {
+      const res = await fetch("/api/companies");
+      if (res.ok) {
+        const json = await res.json();
+        if (json.data && Array.isArray(json.data) && json.data.length > 0) {
+          setCompanies(json.data);
+          return;
+        }
+      }
+      setCompanies(DEMO_COMPANIES);
+    } catch {
+      setCompanies(DEMO_COMPANIES);
+    } finally {
+      setRefreshing(false);
+    }
+  }
 
   useEffect(() => {
     let isMounted = true;
@@ -177,64 +197,75 @@ export default function AdminCompaniesPage() {
     <div className="min-h-screen bg-[#F8FAFC] py-8 sm:py-12 px-4 sm:px-6 lg:px-8 font-sans antialiased text-slate-900">
       <div className="max-w-6xl mx-auto space-y-8">
         
-        {/* Navigation Breadcrumb */}
-        <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs font-medium text-slate-400">
-          <Link href="/" className="hover:text-[#176B62] transition-colors">
-            Beranda
-          </Link>
-          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="m9 18 6-6-6-6" />
-          </svg>
-          <span>Admin Portal</span>
-          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="m9 18 6-6-6-6" />
-          </svg>
-          <span className="text-slate-700 font-semibold">Mitra Perusahaan</span>
-        </nav>
-
-        {/* Page Hero Header */}
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 pb-6 border-b border-slate-200/80">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2.5">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#E8F3F1] text-[#176B62] border border-[#176B62]/20">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#176B62] animate-pulse" />
-                Administrator Panel
+        {/* Modern Clean Header (Anti-Slop, No AI Boilerplate) */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200/80">
+          <div className="space-y-1">
+            <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
+              <Link href="/" className="hover:text-[#176B62] transition-colors">
+                Dashboard
+              </Link>
+              <span className="text-slate-300">/</span>
+              <span className="text-slate-600 font-semibold">Mitra Perusahaan</span>
+            </nav>
+            <div className="flex items-center gap-3 pt-0.5">
+              <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+                Mitra Perusahaan
+              </h1>
+              <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-slate-100 text-slate-700 border border-slate-200/60 tabular-nums">
+                {stats.total} terdaftar
               </span>
-              <span className="text-xs text-slate-400 font-medium">Modul E04-D</span>
             </div>
-            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight sm:text-4xl">
-              Kelola Data Mitra Perusahaan
-            </h1>
-            <p className="text-sm text-slate-500 max-w-2xl leading-relaxed">
-              Pantau dan kelola entitas perusahaan terdaftar di platform Kestara. Hapus perusahaan yang terduplikasi atau telah berhenti bermitra guna menjaga integritas lowongan kerja.
+            <p className="text-xs text-slate-500">
+              Kelola direktori mitra kerja sama dan ketersediaan lowongan aktif.
             </p>
+          </div>
+
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <button
+              type="button"
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-50 active:bg-slate-100 border border-slate-200 rounded-xl transition-all shadow-2xs cursor-pointer disabled:opacity-50"
+            >
+              <svg
+                className={`w-3.5 h-3.5 text-slate-500 ${refreshing ? "animate-spin" : ""}`}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                <path d="M3 3v5h5" />
+                <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+                <path d="M16 16h5v5" />
+              </svg>
+              <span>{refreshing ? "Memperbarui..." : "Segarkan"}</span>
+            </button>
           </div>
         </div>
 
-        {/* Stat Metric Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-          <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-1">
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Mitra</p>
-            <p className="text-2xl sm:text-3xl font-extrabold text-slate-900 tabular-nums">{stats.total}</p>
-            <p className="text-[11px] text-slate-400">Entitas dalam basis data</p>
+        {/* Stat Metric Cards - Minimalist & Sleek */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div className="bg-white p-4.5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-1">
+            <span className="text-[11px] font-semibold tracking-wide text-slate-400 uppercase">Total Mitra</span>
+            <div className="text-2xl font-bold tracking-tight text-slate-900 tabular-nums">{stats.total}</div>
           </div>
 
-          <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-1">
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Mitra Aktif</p>
-            <p className="text-2xl sm:text-3xl font-extrabold text-emerald-600 tabular-nums">{stats.active}</p>
-            <p className="text-[11px] text-emerald-600/80 font-medium">Bermitra secara valid</p>
+          <div className="bg-white p-4.5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-1">
+            <span className="text-[11px] font-semibold tracking-wide text-slate-400 uppercase">Mitra Aktif</span>
+            <div className="text-2xl font-bold tracking-tight text-[#176B62] tabular-nums">{stats.active}</div>
           </div>
 
-          <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-1">
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Lowongan Terbuka</p>
-            <p className="text-2xl sm:text-3xl font-extrabold text-[#176B62] tabular-nums">{stats.totalActiveJobs}</p>
-            <p className="text-[11px] text-slate-400">Sedang menerima pelamar</p>
+          <div className="bg-white p-4.5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-1">
+            <span className="text-[11px] font-semibold tracking-wide text-slate-400 uppercase">Lowongan Aktif</span>
+            <div className="text-2xl font-bold tracking-tight text-slate-900 tabular-nums">{stats.totalActiveJobs}</div>
           </div>
 
-          <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-1">
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Dinonaktifkan</p>
-            <p className="text-2xl sm:text-3xl font-extrabold text-rose-600 tabular-nums">{stats.deleted}</p>
-            <p className="text-[11px] text-rose-600/80 font-medium">Soft delete terverifikasi</p>
+          <div className="bg-white p-4.5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-1">
+            <span className="text-[11px] font-semibold tracking-wide text-slate-400 uppercase">Dinonaktifkan</span>
+            <div className="text-2xl font-bold tracking-tight text-slate-400 tabular-nums">{stats.deleted}</div>
           </div>
         </div>
 

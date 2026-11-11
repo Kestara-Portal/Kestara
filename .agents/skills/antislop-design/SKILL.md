@@ -46,3 +46,4 @@ Tujuan skill ini adalah memastikan antarmuka (UI) Kestara terlihat profesional, 
 2. **Statistik Cepat (Metric Cards):** Card ringkas di atas tabel untuk rangkuman total mitra, lowongan aktif, dan status data.
 3. **Modal Dialog yang Elegan:** Backdrop blur (`backdrop-blur-md bg-slate-900/40`), transisi halus, icon peringatan berbulatan lembut, dan tombol aksi destruktif yang tegas namun ramah pengguna.
 4. **Toast / Notification Floating:** Banner notifikasi mengambang (floating) dengan animasi halus, bukan kotak teks statis biasa.
+
