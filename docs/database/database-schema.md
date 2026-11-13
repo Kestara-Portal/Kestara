@@ -102,25 +102,55 @@ Validate URL formats and date rules at the application boundary and, where appro
 
 ## 4. Company and Vacancy Tables
 
-These are proposed entities supporting PBI-02 and PBI-04.
+**Implementation status (E04-C / E02-U):** `public.companies`, `public.company_memberships`, and `public.job_vacancies` are implemented as a local SQL migration in `supabase/migrations/20261113000000_e02_e04_companies_vacancies.sql`, together with RLS policies, helper functions, and column-level grants. The migration has been applied and its policies verified against a disposable local PostgreSQL instance, but it has **not** been applied to the remote Supabase project. Vacancy creation (E02-C), listing (E02-R), and deletion (E02-D) still have no application-layer implementation.
 
-### `public.companies`
+### `public.companies` — implemented
 
-Proposed attributes: `id`, company name, description, website URL, address/location fields, logo Storage path, status, creator, timestamps. Exact columns and verification fields are TBD.
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID PK | `gen_random_uuid()` |
+| `name` | TEXT NOT NULL | `length(btrim(name)) > 0` |
+| `description` | TEXT | Optional |
+| `website` | TEXT | Optional; validated as absolute http(s) URL in the app layer |
+| `location` | TEXT | Optional |
+| `logo_path` | TEXT | Storage object path only, never a public URL |
+| `created_by` | UUID FK → `public.users.id` | `ON DELETE SET NULL`; always the authenticated actor |
+| `created_at`, `updated_at` | TIMESTAMPTZ | `set_updated_at` trigger |
 
-### `public.company_memberships`
+Duplicate detection uses two unique indexes: a normalized name (`regexp_replace(lower(btrim(name)), '\s+', ' ', 'g')`) and a normalized website domain (`public.company_website_domain(website)`, ignoring scheme, `www.`, path, port, query, and fragment).
 
-Proposed relationship between `public.users` with Recruiter role and `public.companies`. Suggested attributes: `id`, `company_id`, `user_id`, membership role/status, created timestamp. Membership invitation and approval lifecycle are TBD.
+### `public.company_memberships` — implemented
 
-This relationship is important: authorization must not assume every Recruiter can edit every company.
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID PK | |
+| `company_id` | UUID FK → `public.companies.id` | `ON DELETE CASCADE` |
+| `user_id` | UUID FK → `public.users.id` | `ON DELETE CASCADE` |
+| `role` | TEXT | `owner` or `member` |
+| `created_at` | TIMESTAMPTZ | |
 
-### `public.jobs`
+Unique `(company_id, user_id)`. The owner row for a recruiter who registers a company is created by the `companies_create_owner_membership` trigger (SECURITY DEFINER), so company and ownership are committed in one statement. Membership invitation and approval lifecycle remain TBD.
 
-Proposed attributes: `id`, `company_id`, `created_by`, title, description, qualification, location, employment type, publication status, publication/closing timestamps, created/updated timestamps. Exact fields and status lifecycle are TBD.
+Authorization must never assume every Recruiter can edit every company.
+
+### `public.job_vacancies` — implemented
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID PK | |
+| `company_id` | UUID FK → `public.companies.id` | `ON DELETE CASCADE`; immutable after insert (no UPDATE grant) |
+| `recruiter_id` | UUID FK → `public.users.id` | `ON DELETE CASCADE`; immutable after insert |
+| `title` | TEXT NOT NULL | `length(btrim(title)) > 0` |
+| `description` | TEXT NOT NULL | `length(btrim(description)) > 0` |
+| `required_skills` | JSONB NOT NULL | Default `'[]'`; constrained to `jsonb_typeof = 'array'` |
+| `employment_type` | TEXT | `full_time`, `part_time`, `contract`, `internship`, `freelance`, or NULL |
+| `location` | TEXT | Optional |
+| `is_active` | BOOLEAN NOT NULL | Default `true`; `false` means closed/hidden from jobseekers |
+| `created_at`, `updated_at` | TIMESTAMPTZ | `set_updated_at` trigger |
 
 ### `public.job_skill_requirements`
 
-Proposed attributes: `id`, `job_id`, skill name or skill reference, required level, and optional importance. Matching weights are not defined and must not be invented.
+Proposed, not implemented. Required skills are currently stored as the `job_vacancies.required_skills` JSONB array; a normalized skill table with required level and importance remains TBD (matching weights are not defined and must not be invented).
 
 ## 5. Application and Blind Profile Tables
 

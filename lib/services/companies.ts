@@ -2,10 +2,12 @@ import type { CurrentUser } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { AppError } from "@/lib/utils/errors";
 import {
+  companyWebsiteDomain,
   isCompanyId,
   normalizeCompanyWebsite,
   type UpdateCompanyInput,
 } from "@/lib/validations/company";
+import { normalizeCompanyName } from "@/lib/validations/company";
 import type { CompanyRow, JobRow } from "@/types/database";
 
 export interface DeleteCompanyResult {
@@ -188,13 +190,84 @@ export async function getCompaniesForAdmin(): Promise<CompanyWithJobCount[]> {
 }
 
 // =============================================================================
-// KP-27 / E04-U — Update Company Profile
+// KP-19 / E04-C – Register Company Profile
 // =============================================================================
 
-/** Canonical comparison form of a company name; mirrors `lower(btrim(name))`. */
-export function normalizeCompanyName(value: string): string {
-  return value.trim().toLowerCase();
+export interface CompanyInsert {
+  name: string;
+  description: string | null;
+  website: string | null;
+  location: string | null;
+  logo_path: string | null;
+  created_by: string;
 }
+
+export interface CompanyDeps {
+  /** True when a company with the same normalized name or website domain exists. */
+  duplicateExists(input: { name: string; domain: string | null }): Promise<boolean>;
+  insertCompany(values: CompanyInsert): Promise<CompanyRow>;
+}
+
+export interface RegisterCompanyInput {
+  name: string;
+  description?: string | null;
+  website?: string | null;
+  location?: string | null;
+  logo_path?: string | null;
+}
+
+/** Roles allowed to register a company (mirrors the RLS INSERT policy). */
+export function canRegisterCompany(actor: CurrentUser): boolean {
+  return actor.role === "admin" || actor.role === "recruiter";
+}
+
+export function assertCanRegisterCompany(actor: CurrentUser): void {
+  if (!canRegisterCompany(actor)) {
+    throw new AppError(
+      "Hanya administrator atau rekruter yang dapat mendaftarkan perusahaan.",
+      "FORBIDDEN",
+      403,
+    );
+  }
+}
+
+export async function registerCompany(
+  input: RegisterCompanyInput,
+  actor: CurrentUser,
+  deps: CompanyDeps,
+): Promise<CompanyRow> {
+  // Defense in depth: the route handler already applied requireRole().
+  assertCanRegisterCompany(actor);
+
+  const duplicate = await deps.duplicateExists({
+    name: normalizeCompanyName(input.name),
+    domain: companyWebsiteDomain(input.website),
+  });
+
+  if (duplicate) {
+    throw new AppError(
+      "Perusahaan dengan nama atau situs web yang sama sudah terdaftar.",
+      "DUPLICATE_COMPANY",
+      409,
+    );
+  }
+
+  // created_by always comes from the authenticated actor, never from the request
+  // body. A recruiter's owner membership is created by the database trigger, so
+  // the company and its ownership are committed together.
+  return deps.insertCompany({
+    name: input.name.trim(),
+    description: input.description ?? null,
+    website: input.website ?? null,
+    location: input.location ?? null,
+    logo_path: input.logo_path ?? null,
+    created_by: actor.id,
+  });
+}
+
+// =============================================================================
+// KP-27 / E04-U – Update Company Profile
+// =============================================================================
 
 export type CompanyConflict = {
   field: "name" | "website";
@@ -222,7 +295,7 @@ const COMPANY_EDITOR_ROLES = ["admin", "recruiter"] as const;
  * Pure authorization rule for KP-27.
  *
  * Admin may edit any company. A recruiter may edit only a company where they
- * hold an active membership — the E04 rule that "authorization must not assume
+ * hold an active membership – the E04 rule that "authorization must not assume
  * every Recruiter can edit every company".
  */
 export function authorizeCompanyUpdate(
@@ -475,5 +548,3 @@ export async function updateCompany(
 
   return resolved.saveCompany(companyId, data);
 }
-
-
