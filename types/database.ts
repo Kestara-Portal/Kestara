@@ -134,3 +134,10 @@ export interface JobApplicationRow {
 }
 
 export type ApplicationRow = JobApplicationRow;
+
+export type {
+  BlindApplicantProfile,
+  BlindPortfolioItem,
+  BlindSkill,
+  JobScreeningInfo,
+} from "@/lib/services/blind-profile";
