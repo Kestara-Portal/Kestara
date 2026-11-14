@@ -36,4 +36,19 @@ export interface PortfolioItemRow {
   updated_at: string;
 }
 
+export interface ApplicationRow {
+  id: string;
+  job_id: string;
+  applicant_id: string;
+  status: "screening" | "interview" | "review" | "accepted" | "rejected";
+  created_at: string;
+  updated_at: string;
+}
+
 export type { AppRole, PublicRole };
+export type {
+  BlindApplicantProfile,
+  BlindPortfolioItem,
+  BlindSkill,
+  JobScreeningInfo,
+} from "@/lib/services/blind-profile";
