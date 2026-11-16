@@ -18,6 +18,9 @@
   --color-brand-soft: #e8f3f1;
   --color-danger: #b42318;
   --color-success: #16794a;
+  --color-line: #e3e9e7;
+  --color-control-border: #7a8884;
+  --color-muted: #647571;
 }
 
 @media (prefers-color-scheme: dark) {
