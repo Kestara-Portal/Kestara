@@ -1,6 +1,6 @@
 # Kestara — Row Level Security (RLS) Blueprint
 
-> **Status:** Draft — policy matrix only; no production policies have been applied  
+> **Status:** Draft policy matrix; E01 and KP-35 company/job policies are implemented locally, not applied remotely
 > **Target:** Supabase PostgreSQL  
 > **Purpose:** Define row-level access expectations before writing SQL policies.
 
@@ -45,9 +45,9 @@ Legend:
 | `user_skills` | Own CRUD | Own CRUD | Own CRUD | No blanket content access |
 | `portfolio_items` | Own CRUD | Own CRUD | Own CRUD | No blanket content access |
 | Role extension profile | Own | Own | Own | Controlled |
-| Company records | Published/read scope TBD | Deny unless approved | Scoped membership | Controlled |
-| Company membership | Deny | Deny | Own membership/read scoped | Controlled |
-| Jobs | Read published | Read published if product allows | Scoped company CRUD | Controlled |
+| Company records | Deny | Deny | Read only with own verified membership | No direct CRUD; verification RPC controlled |
+| Company membership | Deny | Deny | Read own status only; no verifier identity or direct writes | Verify/revoke through active-admin RPCs |
+| Jobs | Read published | Read published if product allows | Read own jobs; create/publish only through verified-company RPC | Controlled |
 | Job skill requirements | Read with published job | Read with published job if allowed | Scoped company CRUD | Controlled |
 | Applications | Create/read/cancel own | Deny unless explicitly required | Scoped read and status update | Controlled |
 | Blind Profile projection | Deny | Deny | Scoped authorized read | No blanket identity bypass |
@@ -85,11 +85,15 @@ This matrix is a starting proposal. Final permissions must match approved PBI ac
 
 ### Company and vacancy data
 
-- A Recruiter may act only for a company where the user has an approved active membership/ownership relationship.
-- A Recruiter cannot edit another company's data.
+- A Recruiter may publish only when the authenticated user's membership for that company is `verified`.
+- A Recruiter cannot create, verify, revoke, or read another user's membership.
+- Only an active Admin may verify or revoke memberships through restricted RPCs.
+- Company records are readable only by recruiters with their own verified membership.
+- Direct writes to company, membership, job, and job-skill tables are not granted to authenticated clients; job creation is atomic through the validated RPC.
+- `jobs.company_id` is nullable only for legacy rows; the database trigger and RPC require it on new jobs.
 - Published job visibility must be explicit.
 - Draft/closed job visibility must be restricted according to approved business rules.
-- Admin operations must be controlled and audited.
+- Verification and revocation actor/timestamps are stored on the membership row. Full transition history is not implemented.
 
 ### Applications and Blind Profile
 

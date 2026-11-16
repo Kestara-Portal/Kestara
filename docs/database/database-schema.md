@@ -3,7 +3,7 @@
 > **Status:** Draft / Proposed (E01 partially implemented locally)
 > **Target:** Supabase PostgreSQL
 > **Scope:** Initial entity inventory and schema conventions for all eight modules
-> **Implementation status:** Supabase project confirmed by Project Owner. E01 tables (`users`, `user_skills`, `portfolio_items`), RLS, auth provisioning, and E01 storage policies are implemented as local SQL migrations in `supabase/migrations/`. Remote migrations have **not** been applied. Modules E02–E08 remain proposed.
+> **Implementation status:** Supabase project confirmed by Project Owner. E01 and the KP-35 subset of E02 (jobs, company memberships, RLS, and create RPC) are implemented as local SQL migrations in `supabase/migrations/`. Remote migrations have **not** been applied. Other E02 operations and modules E03–E08 remain proposed.
 
 ## 1. How to Read This Blueprint
 
@@ -104,6 +104,8 @@ Validate URL formats and date rules at the application boundary and, where appro
 
 **Implementation status (E04-C / E02-U):** `public.companies`, `public.company_memberships`, and `public.job_vacancies` are implemented as a local SQL migration in `supabase/migrations/20261113000000_e02_e04_companies_vacancies.sql`, together with RLS policies, helper functions, and column-level grants. The migration has been applied and its policies verified against a disposable local PostgreSQL instance, but it has **not** been applied to the remote Supabase project. Vacancy creation (E02-C), listing (E02-R), and deletion (E02-D) still have no application-layer implementation.
 
+Implementation status (KP-35): `public.jobs`, `public.job_skill_requirements`, `public.companies`, and `public.company_memberships` are implemented locally for KP-35. Remote migrations have not been applied.
+
 ### `public.companies` — implemented
 
 | Column | Type | Notes |
@@ -117,6 +119,8 @@ Validate URL formats and date rules at the application boundary and, where appro
 | `created_by` | UUID FK → `public.users.id` | `ON DELETE SET NULL`; always the authenticated actor |
 | `created_at`, `updated_at` | TIMESTAMPTZ | `set_updated_at` trigger |
 
+KP-35 minimum fields: `id`, `name`, `created_at`, and `updated_at`.
+
 Duplicate detection uses two unique indexes: a normalized name (`regexp_replace(lower(btrim(name)), '\s+', ' ', 'g')`) and a normalized website domain (`public.company_website_domain(website)`, ignoring scheme, `www.`, path, port, query, and fragment).
 
 ### `public.company_memberships` — implemented
@@ -128,6 +132,18 @@ Duplicate detection uses two unique indexes: a normalized name (`regexp_replace(
 | `user_id` | UUID FK → `public.users.id` | `ON DELETE CASCADE` |
 | `role` | TEXT | `owner` or `member` |
 | `created_at` | TIMESTAMPTZ | |
+
+KP-35 membership fields and rules: `id`, `company_id`, `user_id`, `membership_status`, `verified_by`, `verified_at`, `revoked_by`, `revoked_at`, `created_at`, and `updated_at`.
+
+Constraints enforce one row per `(company_id, user_id)`, valid `pending`/`verified`/`revoked` states, consistent verifier/revoker timestamps, and no self-verification. Foreign keys use `ON DELETE RESTRICT` so referenced companies, members, and administrators cannot be removed through cascading deletion. Only an active Admin may use the verification/revocation RPCs. Recruiters can read only their own membership rows; verifier identities are not selectable by authenticated clients. Company names are visible to recruiters only while their membership is verified.
+
+#### OPEN-004 — resolved
+
+The Project Owner resolved OPEN-004 on 2026-11-14: a Recruiter may publish a vacancy only for a company where that Recruiter has a `verified` membership. The database, API, and UI enforce this rule; the client never supplies the recruiter identity.
+
+`public.jobs.company_id` is nullable only to preserve existing legacy rows. A database trigger and the create RPC require a company for every new job. Existing rows remain unassigned; no company or membership is inferred for them.
+
+Company membership requests/creation and a full company-management module remain out of scope. Pending membership rows must be provisioned through a trusted administrative process before an Admin verifies them.
 
 Unique `(company_id, user_id)`. The owner row for a recruiter who registers a company is created by the `companies_create_owner_membership` trigger (SECURITY DEFINER), so company and ownership are committed in one statement. Membership invitation and approval lifecycle remain TBD.
 
@@ -147,6 +163,10 @@ Authorization must never assume every Recruiter can edit every company.
 | `location` | TEXT | Optional |
 | `is_active` | BOOLEAN NOT NULL | Default `true`; `false` means closed/hidden from jobseekers |
 | `created_at`, `updated_at` | TIMESTAMPTZ | `set_updated_at` trigger |
+
+### `public.jobs` (KP-35) — implemented
+
+Implemented attributes include `id`, nullable-for-legacy `company_id`, `created_by`, title, description, location, employment type, status, publication timestamp, and created/updated timestamps. The company foreign key uses `ON DELETE RESTRICT`. New job inserts require `company_id`; legacy rows with `NULL` remain untouched until an approved assignment process exists.
 
 ### `public.job_skill_requirements`
 
@@ -272,7 +292,9 @@ Final indexes must be based on query patterns, but review these candidates:
 
 - `public.user_skills(user_id)`
 - `public.portfolio_items(user_id)`
-- `public.company_memberships(user_id, company_id)`
+- `public.company_memberships(user_id, membership_status)`
+- `public.company_memberships(company_id, membership_status)`
+- `public.jobs(company_id)`
 - `public.jobs(company_id, status)`
 - `public.applications(job_id, status)`
 - `public.applications(applicant_id, created_at)`
@@ -282,7 +304,7 @@ Final indexes must be based on query patterns, but review these candidates:
 - `public.mentorship_sessions(jobseeker_id, scheduled_start)`
 - `public.forum_posts(topic_id, created_at)`
 
-Use unique constraints only after business rules are confirmed. Indexes do not replace RLS.
+The unique constraint on `company_memberships(company_id, user_id)` also provides the lookup index for that pair. Indexes do not replace RLS.
 
 ## 13. Hard Deletion and Referential Integrity
 
@@ -295,6 +317,7 @@ Before hard deletion:
 - Preserve required audit history without retaining unnecessary personal data.
 - Implement a reviewed server-side purge workflow.
 - Test foreign-key behavior.
+- Membership revocation currently blocks future job creation and removes that company from the recruiter's verified-company list. It does not automatically delete, close, or reassign existing jobs; the long-term ownership/visibility behavior remains OPEN-008.
 
 Do not add broad `ON DELETE CASCADE` rules that could silently erase important history.
 
@@ -304,7 +327,7 @@ Do not add broad `ON DELETE CASCADE` rules that could silently erase important h
 - [ ] Confirm role-specific profile fields.
 - [ ] Approve `public.users` and Auth identity relationship.
 - [ ] Approve shared `user_skills` and `portfolio_items`.
-- [ ] Approve company membership and recruiter ownership model.
+- [x] Approve the KP-35 authorization rule: only a Recruiter with verified membership may publish for a company (DEC-037). Company onboarding and legacy-job assignment remain open.
 - [ ] Approve job and application lifecycles.
 - [ ] Approve Blind Profile field allowlist.
 - [ ] Approve learning progress model.
