@@ -24,6 +24,20 @@ if (!url || !anonKey || !serviceRoleKey) {
   process.exit(1);
 }
 
+let isLocalUrl = false;
+try {
+  isLocalUrl = ["localhost", "127.0.0.1", "::1"].includes(new URL(url).hostname);
+} catch {
+  isLocalUrl = false;
+}
+
+if (!isLocalUrl || process.env.PBI_TEST_DATABASE_ISOLATED !== "true") {
+  console.error(
+    "Refusing integration test: use an isolated local Supabase and set PBI_TEST_DATABASE_ISOLATED=true.",
+  );
+  process.exit(1);
+}
+
 const adminByServiceRole = createClient(url, serviceRoleKey, {
   auth: { autoRefreshToken: false, persistSession: false },
 });
@@ -66,11 +80,14 @@ async function authClient(email) {
 const runId = Date.now();
 const ids = [];
 const uploadedPaths = [];
+const companyIds = [];
+const membershipIds = [];
 const emails = {
   a: `rls.a.${runId}@kestara.test`,
   b: `rls.b.${runId}@kestara.test`,
   mentor: `rls.mentor.${runId}@kestara.test`,
   recruiter: `rls.recruiter.${runId}@kestara.test`,
+  recruiterB: `rls.recruiter-b.${runId}@kestara.test`,
   admin: `rls.admin.${runId}@kestara.test`,
 };
 
@@ -78,8 +95,86 @@ try {
   const idA = await createUser(emails.a, "RLS A", "jobseeker", ids);
   const idB = await createUser(emails.b, "RLS B", "jobseeker", ids);
   await createUser(emails.mentor, "RLS Mentor", "mentor", ids);
-  await createUser(emails.recruiter, "RLS Recruiter", "recruiter", ids);
-  await createUser(emails.admin, "RLS Admin", "admin", ids);
+  const recruiterId = await createUser(emails.recruiter, "RLS Recruiter", "recruiter", ids);
+  const recruiterBId = await createUser(emails.recruiterB, "RLS Recruiter B", "recruiter", ids);
+  const adminId = await createUser(emails.admin, "RLS Admin", "admin", ids);
+
+  const companyA = await adminByServiceRole
+    .from("companies")
+    .insert({ name: `RLS Company A ${runId}` })
+    .select("id")
+    .single();
+  if (companyA.error || !companyA.data) {
+    throw new Error(`create company fixture failed: ${companyA.error?.message}`);
+  }
+  companyIds.push(companyA.data.id);
+
+  const pendingCompany = await adminByServiceRole
+    .from("companies")
+    .insert({ name: `RLS Company Pending ${runId}` })
+    .select("id")
+    .single();
+  if (pendingCompany.error || !pendingCompany.data) {
+    throw new Error(`create company fixture failed: ${pendingCompany.error?.message}`);
+  }
+  companyIds.push(pendingCompany.data.id);
+
+  const companyB = await adminByServiceRole
+    .from("companies")
+    .insert({ name: `RLS Company B ${runId}` })
+    .select("id")
+    .single();
+  if (companyB.error || !companyB.data) {
+    throw new Error(`create company fixture failed: ${companyB.error?.message}`);
+  }
+  companyIds.push(companyB.data.id);
+
+  const verifiedAt = new Date().toISOString();
+  const verifiedMembership = await adminByServiceRole
+    .from("company_memberships")
+    .insert({
+      company_id: companyA.data.id,
+      user_id: recruiterId,
+      membership_status: "verified",
+      verified_by: adminId,
+      verified_at: verifiedAt,
+    })
+    .select("id")
+    .single();
+  if (verifiedMembership.error || !verifiedMembership.data) {
+    throw new Error(`create membership fixture failed: ${verifiedMembership.error?.message}`);
+  }
+  membershipIds.push(verifiedMembership.data.id);
+
+  const pendingMembership = await adminByServiceRole
+    .from("company_memberships")
+    .insert({
+      company_id: pendingCompany.data.id,
+      user_id: recruiterId,
+      membership_status: "pending",
+    })
+    .select("id")
+    .single();
+  if (pendingMembership.error || !pendingMembership.data) {
+    throw new Error(`create membership fixture failed: ${pendingMembership.error?.message}`);
+  }
+  membershipIds.push(pendingMembership.data.id);
+
+  const otherMembership = await adminByServiceRole
+    .from("company_memberships")
+    .insert({
+      company_id: companyB.data.id,
+      user_id: recruiterBId,
+      membership_status: "verified",
+      verified_by: adminId,
+      verified_at: verifiedAt,
+    })
+    .select("id")
+    .single();
+  if (otherMembership.error || !otherMembership.data) {
+    throw new Error(`create membership fixture failed: ${otherMembership.error?.message}`);
+  }
+  membershipIds.push(otherMembership.data.id);
 
   const anon = createClient(url, anonKey, {
     auth: { autoRefreshToken: false, persistSession: false },
@@ -87,7 +182,100 @@ try {
   const asA = await authClient(emails.a);
   const asB = await authClient(emails.b);
   const asMentor = await authClient(emails.mentor);
+  const asRecruiter = await authClient(emails.recruiter);
+  const asRecruiterB = await authClient(emails.recruiterB);
   const asAdmin = await authClient(emails.admin);
+
+  const recruiterCompanies = await asRecruiter.from("companies").select("id");
+  check(
+    "recruiter sees only a company with their verified membership",
+    recruiterCompanies.data?.length === 1 &&
+      recruiterCompanies.data[0]?.id === companyA.data.id,
+    recruiterCompanies.error?.message ?? `rows=${recruiterCompanies.data?.length ?? 0}`,
+  );
+
+  const pendingCompanyRead = await asRecruiter
+    .from("companies")
+    .select("id")
+    .eq("id", pendingCompany.data.id);
+  check(
+    "pending membership does not expose company data",
+    !pendingCompanyRead.error && (pendingCompanyRead.data?.length ?? 0) === 0,
+    pendingCompanyRead.error?.message ?? "",
+  );
+
+  const otherCompanyRead = await asRecruiter
+    .from("companies")
+    .select("id")
+    .eq("id", companyB.data.id);
+  check(
+    "cross-company read is isolated",
+    !otherCompanyRead.error && (otherCompanyRead.data?.length ?? 0) === 0,
+    otherCompanyRead.error?.message ?? "",
+  );
+
+  const otherMembershipRead = await asRecruiter
+    .from("company_memberships")
+    .select("id")
+    .eq("user_id", recruiterBId);
+  check(
+    "cross-user membership read is denied",
+    !otherMembershipRead.error && (otherMembershipRead.data?.length ?? 0) === 0,
+    otherMembershipRead.error?.message ?? "",
+  );
+
+  const privateVerifierRead = await asRecruiter
+    .from("company_memberships")
+    .select("verified_by")
+    .eq("id", verifiedMembership.data.id);
+  check(
+    "membership verifier identity is private",
+    Boolean(privateVerifierRead.error),
+    privateVerifierRead.error?.message ?? "column was readable",
+  );
+
+  const selfVerify = await asRecruiter.rpc("admin_verify_company_membership", {
+    p_membership_id: pendingMembership.data.id,
+  });
+  check("recruiter cannot verify their own membership", Boolean(selfVerify.error), selfVerify.error?.message ?? "no error");
+
+  const verifiedByAdmin = await asAdmin.rpc("admin_verify_company_membership", {
+    p_membership_id: pendingMembership.data.id,
+  });
+  check("active admin can verify a pending membership", !verifiedByAdmin.error, verifiedByAdmin.error?.message ?? "");
+
+  const adminRevoke = await asAdmin.rpc("admin_revoke_company_membership", {
+    p_membership_id: pendingMembership.data.id,
+  });
+  check("active admin can revoke a verified membership", !adminRevoke.error, adminRevoke.error?.message ?? "");
+
+  const nonAdminRevoke = await asRecruiterB.rpc("admin_revoke_company_membership", {
+    p_membership_id: verifiedMembership.data.id,
+  });
+  check("recruiter cannot revoke a membership", Boolean(nonAdminRevoke.error), nonAdminRevoke.error?.message ?? "no error");
+
+  const revokedCompanyRead = await asRecruiter
+    .from("companies")
+    .select("id")
+    .eq("id", pendingCompany.data.id);
+  check(
+    "revoked membership removes company from verified access",
+    !revokedCompanyRead.error && (revokedCompanyRead.data?.length ?? 0) === 0,
+    revokedCompanyRead.error?.message ?? "",
+  );
+
+  const directMembershipInsert = await asRecruiter
+    .from("company_memberships")
+    .insert({ company_id: companyB.data.id, user_id: recruiterId })
+    .select("id");
+  check("recruiter cannot insert membership directly", Boolean(directMembershipInsert.error), directMembershipInsert.error?.message ?? "inserted unexpectedly");
+
+  const nonRecruiterCompanyRead = await asA.from("companies").select("id");
+  check(
+    "non-recruiter cannot read company data",
+    !nonRecruiterCompanyRead.error && (nonRecruiterCompanyRead.data?.length ?? 0) === 0,
+    nonRecruiterCompanyRead.error?.message ?? "",
+  );
 
   const anonUsers = await anon.from("users").select("id");
   check("anon cannot read users", (anonUsers.data?.length ?? 0) === 0, `rows=${anonUsers.data?.length ?? 0}`);
@@ -277,10 +465,20 @@ try {
   check("integration run", false, error instanceof Error ? error.message : String(error));
 } finally {
   for (const path of uploadedPaths) {
-    await adminByServiceRole.storage.from("profile-avatars").remove([path]).catch(() => {});
+    const { error } = await adminByServiceRole.storage.from("profile-avatars").remove([path]);
+    check("cleanup uploaded fixture", !error, error?.message ?? "");
+  }
+  for (const id of membershipIds) {
+    const { error } = await adminByServiceRole.from("company_memberships").delete().eq("id", id);
+    check("cleanup membership fixture", !error, error?.message ?? "");
+  }
+  for (const id of companyIds) {
+    const { error } = await adminByServiceRole.from("companies").delete().eq("id", id);
+    check("cleanup company fixture", !error, error?.message ?? "");
   }
   for (const id of ids.reverse()) {
-    await adminByServiceRole.auth.admin.deleteUser(id).catch(() => {});
+    const { error } = await adminByServiceRole.auth.admin.deleteUser(id);
+    check("cleanup synthetic user", !error, error?.message ?? "");
   }
 }
 

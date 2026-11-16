@@ -101,8 +101,11 @@ The development foundation adopted the following tools. Extend them rather than 
 | Static | `npm run lint` | ESLint 9 + eslint-config-next |
 | Static | `npm run build` | Next.js production build |
 | Unit | `npm run test` | Vitest (`tests/unit/`) |
-| Database / RLS | `npm run test:rls` | Node integration checks (needs local Supabase) |
+| Database / RLS | `npm run test:rls` | Creates/deletes synthetic Auth users and uploads; requires an isolated local Supabase and `PBI_TEST_DATABASE_ISOLATED=true` |
+| PBI integration | `npm run test:pbi` | KP-7/KP-35 checks; creates/deletes synthetic users and rows; requires an isolated local Supabase and `PBI_TEST_DATABASE_ISOLATED=true` |
 | Database | `npm run db:test` | pgTAP via `supabase test db` |
+
+Do not run data-mutating integration commands against a shared or valuable local database. The test scripts reject non-local URLs and require an explicit isolation flag, but cannot determine whether a local database contains data that must be retained. Do not use `db reset` to prepare an integration test unless the target is a disposable database.
 
 Playwright/Cypress E2E is not adopted yet. Add it only with team approval and a documented scope.
 
@@ -112,3 +115,14 @@ Playwright/Cypress E2E is not adopted yet. Add it only with team approval and a 
 - Runtime smoke test (`next start`): `/`, `/auth/login`, `/auth/register` return HTTP 200.
 - Local Supabase: `db reset` applied all 6 migrations cleanly and ran the seed.
 - Database / RLS / Auth / Storage integration (`npm run test:rls`): **PASS — 28/28 checks** (anon denial, own-read, cross-user denial, role/status protection, provisioning, admin escalation blocked, login/logout/session, storage isolation, suspended-account mutation/upload denial).
+
+### KP-7 / KP-35 verification snapshot (2026-11-14)
+
+- `npm run typecheck`: **PASS**.
+- `npm run lint`: **PASS with 2 existing warnings** in the legacy `app/register/page.tsx`.
+- `npm run test`: **PASS — 48 tests**.
+- `npm run build`: **PASS** after the verified-company membership migration.
+- `npm run test:pbi`: **PASS — 79/79 checks** on a separate disposable local Supabase project.
+- `npm run test:rls`: **PASS — 55/55 checks** on the same isolated local project.
+- `node --check scripts/profile-jobs-check.mjs` and `node --check scripts/db-rls-check.mjs`: **PASS**.
+- The migration upgrade path preserved legacy jobs without assigning companies or memberships. OPEN-008 remains unresolved for legacy-job assignment and existing-job behavior after membership revocation. Jira acceptance criteria and visual viewport QA were not verified.

@@ -18,7 +18,8 @@
     "db:diff": "supabase db diff",
     "provision:admin": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/provision-admin.mjs",
     "seed:users": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/seed-users.mjs",
-    "test:rls": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/db-rls-check.mjs"
+    "test:rls": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/db-rls-check.mjs",
+    "test:pbi": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/profile-jobs-check.mjs"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",

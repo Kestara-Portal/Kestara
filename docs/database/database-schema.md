@@ -3,7 +3,7 @@
 > **Status:** Draft / Proposed (E01 partially implemented locally)
 > **Target:** Supabase PostgreSQL
 > **Scope:** Initial entity inventory and schema conventions for all eight modules
-> **Implementation status:** Supabase project confirmed by Project Owner. E01 tables (`users`, `user_skills`, `portfolio_items`), RLS, auth provisioning, and E01 storage policies are implemented as local SQL migrations in `supabase/migrations/`. Remote migrations have **not** been applied. Modules E02–E08 remain proposed.
+> **Implementation status:** Supabase project confirmed by Project Owner. E01 and the KP-35 subset of E02 (jobs, company memberships, RLS, and create RPC) are implemented as local SQL migrations in `supabase/migrations/`. Remote migrations have **not** been applied. Other E02 operations and modules E03–E08 remain proposed.
 
 ## 1. How to Read This Blueprint
 
@@ -102,21 +102,29 @@ Validate URL formats and date rules at the application boundary and, where appro
 
 ## 4. Company and Vacancy Tables
 
-These are proposed entities supporting PBI-02 and PBI-04.
+Implementation status: `public.jobs`, `public.job_skill_requirements`, `public.companies`, and `public.company_memberships` are implemented locally for KP-35. Remote migrations have not been applied.
 
 ### `public.companies`
 
-Proposed attributes: `id`, company name, description, website URL, address/location fields, logo Storage path, status, creator, timestamps. Exact columns and verification fields are TBD.
+Implemented minimum fields: `id`, `name`, `created_at`, and `updated_at`. Company CRUD, verification, duplicate handling beyond the membership key, company assets, and profile fields are outside KP-35.
 
 ### `public.company_memberships`
 
-Proposed relationship between `public.users` with Recruiter role and `public.companies`. Suggested attributes: `id`, `company_id`, `user_id`, membership role/status, created timestamp. Membership invitation and approval lifecycle are TBD.
+Implemented relationship between a company and a user: `id`, `company_id`, `user_id`, `membership_status`, `verified_by`, `verified_at`, `revoked_by`, `revoked_at`, `created_at`, and `updated_at`.
 
-This relationship is important: authorization must not assume every Recruiter can edit every company.
+Constraints enforce one row per `(company_id, user_id)`, valid `pending`/`verified`/`revoked` states, consistent verifier/revoker timestamps, and no self-verification. Foreign keys use `ON DELETE RESTRICT` so referenced companies, members, and administrators cannot be removed through cascading deletion. Only an active Admin may use the verification/revocation RPCs. Recruiters can read only their own membership rows; verifier identities are not selectable by authenticated clients. Company names are visible to recruiters only while their membership is verified.
+
+#### OPEN-004 — resolved
+
+The Project Owner resolved OPEN-004 on 2026-11-14: a Recruiter may publish a vacancy only for a company where that Recruiter has a `verified` membership. The database, API, and UI enforce this rule; the client never supplies the recruiter identity.
+
+`public.jobs.company_id` is nullable only to preserve existing legacy rows. A database trigger and the create RPC require a company for every new job. Existing rows remain unassigned; no company or membership is inferred for them.
+
+Company membership requests/creation and a full company-management module remain out of scope. Pending membership rows must be provisioned through a trusted administrative process before an Admin verifies them.
 
 ### `public.jobs`
 
-Proposed attributes: `id`, `company_id`, `created_by`, title, description, qualification, location, employment type, publication status, publication/closing timestamps, created/updated timestamps. Exact fields and status lifecycle are TBD.
+Implemented attributes include `id`, nullable-for-legacy `company_id`, `created_by`, title, description, location, employment type, status, publication timestamp, and created/updated timestamps. The company foreign key uses `ON DELETE RESTRICT`. New job inserts require `company_id`; legacy rows with `NULL` remain untouched until an approved assignment process exists.
 
 ### `public.job_skill_requirements`
 
@@ -242,7 +250,9 @@ Final indexes must be based on query patterns, but review these candidates:
 
 - `public.user_skills(user_id)`
 - `public.portfolio_items(user_id)`
-- `public.company_memberships(user_id, company_id)`
+- `public.company_memberships(user_id, membership_status)`
+- `public.company_memberships(company_id, membership_status)`
+- `public.jobs(company_id)`
 - `public.jobs(company_id, status)`
 - `public.applications(job_id, status)`
 - `public.applications(applicant_id, created_at)`
@@ -252,7 +262,7 @@ Final indexes must be based on query patterns, but review these candidates:
 - `public.mentorship_sessions(jobseeker_id, scheduled_start)`
 - `public.forum_posts(topic_id, created_at)`
 
-Use unique constraints only after business rules are confirmed. Indexes do not replace RLS.
+The unique constraint on `company_memberships(company_id, user_id)` also provides the lookup index for that pair. Indexes do not replace RLS.
 
 ## 13. Hard Deletion and Referential Integrity
 
@@ -265,6 +275,7 @@ Before hard deletion:
 - Preserve required audit history without retaining unnecessary personal data.
 - Implement a reviewed server-side purge workflow.
 - Test foreign-key behavior.
+- Membership revocation currently blocks future job creation and removes that company from the recruiter's verified-company list. It does not automatically delete, close, or reassign existing jobs; the long-term ownership/visibility behavior remains OPEN-008.
 
 Do not add broad `ON DELETE CASCADE` rules that could silently erase important history.
 
@@ -274,7 +285,7 @@ Do not add broad `ON DELETE CASCADE` rules that could silently erase important h
 - [ ] Confirm role-specific profile fields.
 - [ ] Approve `public.users` and Auth identity relationship.
 - [ ] Approve shared `user_skills` and `portfolio_items`.
-- [ ] Approve company membership and recruiter ownership model.
+- [x] Approve the KP-35 authorization rule: only a Recruiter with verified membership may publish for a company (DEC-037). Company onboarding and legacy-job assignment remain open.
 - [ ] Approve job and application lifecycles.
 - [ ] Approve Blind Profile field allowlist.
 - [ ] Approve learning progress model.

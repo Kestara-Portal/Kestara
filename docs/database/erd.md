@@ -1,6 +1,6 @@
 # Kestara — Database ERD (Conceptual Blueprint)
 
-> **Status:** Draft — not an approved migration schema  
+> **Status:** Draft conceptual ERD; E01, E02 job creation, and the minimal KP-35 company-membership schema are implemented locally
 > **Target database:** Supabase PostgreSQL  
 > **Important:** Validate this conceptual model against the original academic proposal/ERD before implementation. Table names and relationships marked as proposed are design recommendations, not confirmed existing tables.
 
@@ -18,7 +18,7 @@
 
 ## 2. Conceptual ERD
 
-The diagram shows proposed entities and relationships. It intentionally omits some attributes and constraints until the proposal and detailed PBI acceptance criteria are checked.
+The diagram shows both existing local relationships and proposed future entities. It intentionally omits attributes for modules outside the implemented scope.
 
 ```mermaid
 erDiagram
@@ -81,10 +81,10 @@ erDiagram
 
 | Entity | Purpose | Status |
 |---|---|---|
-| `public.companies` | Company/partner information | Proposed |
-| `public.company_memberships` | Maps recruiters to companies and their authorized relationship | Proposed; business rules TBD |
-| `public.jobs` | Job vacancy data | Proposed |
-| `public.job_skill_requirements` | Skills/competencies required by a vacancy | Proposed |
+| `public.companies` | Minimal company record for KP-35 vacancy ownership | Implemented locally; no company CRUD module |
+| `public.company_memberships` | Recruiter-company verification and authorization | Implemented locally; admin-only verify/revoke RPCs |
+| `public.jobs` | Job vacancy data | Implemented locally; new rows require company membership |
+| `public.job_skill_requirements` | Skills/competencies required by a vacancy | Implemented locally |
 | `public.applications` | Candidate application to a vacancy | Proposed |
 | `public.application_events` | Application status history/audit trail | Proposed |
 
@@ -178,8 +178,8 @@ A user may own many portfolio items. Default file visibility should be private u
 2. A user must have exactly one application role.
 3. Role-specific extension rows, if retained, must correspond to the matching role.
 4. A user can own multiple skills and portfolio items.
-5. A company can have multiple recruiter memberships, subject to an approved membership model.
-6. A job belongs to a company and records its creator.
+5. A company can have multiple recruiter memberships; each `(company_id, user_id)` pair is unique.
+6. A new job belongs to a company and records its creator. Publishing requires the creator's verified company membership. Legacy jobs retain `company_id = NULL` until an approved assignment policy exists.
 7. An application links one applicant to one job. Define a unique constraint for the intended duplicate-application rule after product approval.
 8. Application status changes should be traceable if status history is required.
 9. Learning progress belongs to one user and one learning module.
@@ -210,7 +210,8 @@ The field allowlist, matching score formula, and identity-reveal stage are not d
 
 - Compare every entity against the original proposal ERD.
 - Determine whether role-specific profile extension tables are required or whether a shared profile plus role-specific attributes is sufficient.
-- Finalize company-to-recruiter ownership/membership rules.
+- Define how pending memberships and company records are provisioned; full company CRUD is outside KP-35.
+- Decide how existing jobs are treated after a membership is revoked and how legacy jobs may be assigned.
 - Finalize vacancy status values and close/delete semantics.
 - Define application status lifecycle and cancellation rules.
 - Define whether learning content has modules, lessons, attachments, or external links.

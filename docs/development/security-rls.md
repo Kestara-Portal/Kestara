@@ -1,6 +1,6 @@
 # RLS & Security Guide
 
-> Status: policies implemented across `20261110090100_e01_rls.sql`, `20261110090400_e01_account_status_guard.sql`, and `20261110090500_function_grants.sql`. Runtime verification passed locally (`npm run test:rls`, 28/28 checks).
+> Status: E01 and KP-35 company/job policies are implemented in local migrations. Remote migrations have not been applied.
 
 ## Principles
 
@@ -57,9 +57,9 @@ Suspended/deactivated accounts cannot perform protected mutations or storage upl
 
 ## Testing
 
-`npm run test:rls` creates isolated synthetic users and verifies: anon denial, own-read, cross-user denial, role-change denial, own CRUD, cross-user skill edit denial, admin no-blanket skill access, admin user listing.
+`npm run test:rls` creates isolated synthetic users and verifies E01 access controls plus verified-company visibility, pending/revoked access, recruiter cross-company isolation, and admin-only membership verification/revocation.
 
-Minimum additional checks (once Docker is available): deactivated account cannot mutate, admin RPC authorization, storage isolation.
+`public.company_memberships` keeps the latest verified/revoked actor and timestamps. It does not keep an append-only history of every status transition. Revoking a membership blocks future job creation; existing jobs are not automatically changed or deleted.
 
 ## Rules for new tables/PBIs
 
