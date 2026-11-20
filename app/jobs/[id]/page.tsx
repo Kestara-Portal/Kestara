@@ -1,19 +1,96 @@
-import { PrismaClient } from '@prisma/client';
-import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { createClient } from "@/lib/supabase/server";
+import ApplyButton from "@/components/ApplyButton";
+import Link from "next/link";
+import { notFound } from "next/navigation";
 
-export const instant = false;
+export const dynamic = "force-dynamic";
 
-const prisma = new PrismaClient();
+interface CompanyData {
+  id: string;
+  name: string;
+  logo_path?: string | null;
+  logo?: string | null;
+  industry: string;
+  location: string;
+  website?: string | null;
+  size?: string | null;
+  description?: string | null;
+}
 
-async function getJobDetail(jobId: number) {
-  const job = await prisma.job.findUnique({
-    where: { id: jobId },
-    include: {
-      company: true,
-    },
-  });
-  return job;
+interface JobData {
+  id: string;
+  title: string;
+  type: string;
+  location?: string | null;
+  salary?: string | null;
+  description: string;
+  requirements: string;
+  company: CompanyData;
+}
+
+async function getJobDetail(jobId: string): Promise<JobData | null> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("jobs")
+    .select(`
+      id,
+      title,
+      type,
+      location,
+      salary,
+      description,
+      requirements,
+      status,
+      companies (
+        id,
+        name,
+        logo_path,
+        industry,
+        location,
+        website,
+        size,
+        description
+      )
+    `)
+    .eq("id", jobId)
+    .maybeSingle();
+
+  if (error || !data) {
+    return null;
+  }
+
+  const rawCompany = Array.isArray(data.companies) ? data.companies[0] : data.companies;
+
+  const company: CompanyData = rawCompany
+    ? {
+        ...rawCompany,
+        logo: rawCompany.logo_path || null,
+        industry: rawCompany.industry || "Umum",
+        location: rawCompany.location || data.location || "-",
+      }
+    : {
+        id: "",
+        name: "Perusahaan",
+        logo_path: null,
+        logo: null,
+        industry: "Umum",
+        location: data.location || "-",
+        website: null,
+        size: null,
+        description: "",
+      };
+
+  return {
+    id: data.id,
+    title: data.title,
+    type: data.type || "Full-time",
+    location: data.location || company.location,
+    salary: data.salary,
+    description: data.description || "",
+    requirements: data.requirements || "",
+    company,
+  };
 }
 
 export default async function JobDetailPage({
@@ -22,8 +99,8 @@ export default async function JobDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const resolvedParams = await params;
-  const jobId = parseInt(resolvedParams.id);
-  
+  const jobId = resolvedParams.id;
+
   const job = await getJobDetail(jobId);
 
   if (!job) {
@@ -36,12 +113,12 @@ export default async function JobDetailPage({
         
         {/* Header Lowongan */}
         <div className="mb-8">
-          <Link href="/jobs" className="text-sm text-slate-500 hover:text-[#dd1567] mb-4 inline-block">
+          <Link href="/lowongan" className="text-sm text-slate-500 hover:text-[#dd1567] mb-4 inline-block">
             ← Kembali ke daftar lowongan
           </Link>
           <h1 className="text-3xl font-bold text-slate-900">{job.title}</h1>
           <div className="flex items-center gap-4 mt-3 text-sm text-slate-600">
-            <span className="flex items-center gap-1">📍 {job.company.location}</span>
+            <span className="flex items-center gap-1">📍 {job.location || job.company.location}</span>
             <span className="flex items-center gap-1">💼 {job.type}</span>
             {job.salary && <span className="flex items-center gap-1">💰 {job.salary}</span>}
           </div>
@@ -61,9 +138,9 @@ export default async function JobDetailPage({
               {job.requirements}
             </div>
 
-            <button className="mt-10 w-full md:w-auto bg-[#dd1567] hover:bg-[#c21259] text-white py-3.5 px-8 rounded-xl font-medium transition-all shadow-md">
-              Lamar Pekerjaan Ini
-            </button>
+            <div className="mt-10">
+              <ApplyButton jobId={job.id} jobTitle={job.title} />
+            </div>
           </div>
 
           {/* KOLOM KANAN: Detail Perusahaan (Fokus PBI) */}
@@ -76,8 +153,12 @@ export default async function JobDetailPage({
               <div className="flex items-center gap-4 mb-6">
                 {/* Placeholder Logo */}
                 <div className="w-16 h-16 bg-slate-100 rounded-xl flex items-center justify-center text-2xl border border-slate-200 overflow-hidden">
-                  {job.company.logo ? (
-                    <img src={job.company.logo} alt="Logo" className="w-full h-full object-cover" />
+                  {job.company.logo_path || job.company.logo ? (
+                    <img
+                      src={job.company.logo_path || job.company.logo || ""}
+                      alt={job.company.name}
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
                     "🏢"
                   )}

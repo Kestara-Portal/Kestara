@@ -47,6 +47,7 @@ export interface CompanyRow {
   website: string | null;
   size: string | null;
   logo_path: string | null;
+  logo?: string | null;
   status: CompanyStatus;
   created_by: string | null;
   created_at: string;
@@ -58,6 +59,7 @@ export type JobStatus = "draft" | "published" | "closed" | "archived";
 export interface JobRow {
   id: string;
   company_id: string;
+  companyId?: string;
   title: string;
   description: string | null;
   requirements: string | null;
