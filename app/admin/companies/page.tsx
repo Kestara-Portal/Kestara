@@ -5,7 +5,7 @@ import Link from "next/link";
 import { DeleteCompanyModal } from "@/components/companies/delete-company-modal";
 import type { CompanyWithJobCount } from "@/lib/services/companies";
 
-// Demo data dengan detail realistis
+
 const DEMO_COMPANIES: CompanyWithJobCount[] = [
   {
     id: "comp-1111-aaaa",
@@ -196,7 +196,7 @@ export default function AdminCompaniesPage() {
   return (
     <div className="min-h-screen bg-[#F8FAFC] py-8 sm:py-12 px-4 sm:px-6 lg:px-8 font-sans antialiased text-slate-900">
       <div className="max-w-6xl mx-auto space-y-8">
-        
+
         {/* Modern Clean Header (Anti-Slop, No AI Boilerplate) */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200/80">
           <div className="space-y-1">
@@ -272,19 +272,17 @@ export default function AdminCompaniesPage() {
         {/* Floating Feedback Toast */}
         {feedback && (
           <div
-            className={`p-4 rounded-2xl border flex items-center justify-between gap-4 shadow-lg animate-in fade-in slide-in-from-top-2 duration-300 ${
-              feedback.type === "success"
+            className={`p-4 rounded-2xl border flex items-center justify-between gap-4 shadow-lg animate-in fade-in slide-in-from-top-2 duration-300 ${feedback.type === "success"
                 ? "bg-emerald-50/90 border-emerald-200 text-emerald-900"
                 : "bg-rose-50/90 border-rose-200 text-rose-900"
-            }`}
+              }`}
           >
             <div className="flex items-center gap-3 text-sm font-medium">
               <div
-                className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
-                  feedback.type === "success"
+                className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${feedback.type === "success"
                     ? "bg-emerald-100 text-emerald-700"
                     : "bg-rose-100 text-rose-700"
-                }`}
+                  }`}
               >
                 {feedback.type === "success" ? (
                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -314,42 +312,39 @@ export default function AdminCompaniesPage() {
 
         {/* Main Content Card Container */}
         <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
-          
+
           {/* Controls Toolbar: Search & Filter Tabs */}
           <div className="p-5 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-            
+
             {/* Filter Tabs */}
             <div className="inline-flex p-1 bg-slate-100/80 rounded-2xl self-start">
               <button
                 type="button"
                 onClick={() => setActiveTab("all")}
-                className={`px-4 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                  activeTab === "all"
+                className={`px-4 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${activeTab === "all"
                     ? "bg-white text-slate-900 shadow-xs"
                     : "text-slate-500 hover:text-slate-700"
-                }`}
+                  }`}
               >
                 Semua ({stats.total})
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab("active")}
-                className={`px-4 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                  activeTab === "active"
+                className={`px-4 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${activeTab === "active"
                     ? "bg-white text-emerald-700 shadow-xs"
                     : "text-slate-500 hover:text-slate-700"
-                }`}
+                  }`}
               >
                 Aktif ({stats.active})
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab("deleted")}
-                className={`px-4 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                  activeTab === "deleted"
+                className={`px-4 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${activeTab === "deleted"
                     ? "bg-white text-rose-700 shadow-xs"
                     : "text-slate-500 hover:text-slate-700"
-                }`}
+                  }`}
               >
                 Dihapus ({stats.deleted})
               </button>
@@ -440,21 +435,19 @@ export default function AdminCompaniesPage() {
                     return (
                       <tr
                         key={company.id}
-                        className={`group transition-colors ${
-                          isDeleted
+                        className={`group transition-colors ${isDeleted
                             ? "bg-slate-50/40 text-slate-400"
                             : "hover:bg-slate-50/70 text-slate-700"
-                        }`}
+                          }`}
                       >
                         {/* Nama Perusahaan & Avatar */}
                         <td className="py-4.5 px-6">
                           <div className="flex items-center gap-3.5">
                             <div
-                              className={`w-11 h-11 rounded-2xl font-bold flex items-center justify-center shrink-0 text-sm tracking-wider shadow-xs border ${
-                                isDeleted
+                              className={`w-11 h-11 rounded-2xl font-bold flex items-center justify-center shrink-0 text-sm tracking-wider shadow-xs border ${isDeleted
                                   ? "bg-slate-100 text-slate-400 border-slate-200"
                                   : "bg-linear-to-br from-[#E8F3F1] to-[#D5ECE8] text-[#176B62] border-[#176B62]/20"
-                              }`}
+                                }`}
                             >
                               {initials}
                             </div>
@@ -501,13 +494,12 @@ export default function AdminCompaniesPage() {
                         {/* Lowongan Kerja */}
                         <td className="py-4.5 px-6">
                           <span
-                            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold border ${
-                              isDeleted
+                            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold border ${isDeleted
                                 ? "bg-slate-100 text-slate-400 border-slate-200"
                                 : company.activeJobsCount > 0
-                                ? "bg-amber-50 text-amber-800 border-amber-200/80"
-                                : "bg-slate-50 text-slate-600 border-slate-200/70"
-                            }`}
+                                  ? "bg-amber-50 text-amber-800 border-amber-200/80"
+                                  : "bg-slate-50 text-slate-600 border-slate-200/70"
+                              }`}
                           >
                             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                               <rect width="20" height="14" x="2" y="7" rx="2" ry="2" />
