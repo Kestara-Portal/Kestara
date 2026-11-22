@@ -82,7 +82,6 @@ export interface JobRow {
   updated_at: string;
 }
 
-<<<<<<< HEAD
 export const EMPLOYMENT_TYPES = [
   "full_time",
   "part_time",
@@ -152,7 +151,7 @@ export interface JobApplicationRow {
   status: ApplicationStatus;
   cover_letter?: string | null;
   resume_path?: string | null;
-  withdrawal_reason: string | null;
+  withdrawal_reason?: string | null;
   created_at: string;
   updated_at: string;
   jobseeker_id?: string;
