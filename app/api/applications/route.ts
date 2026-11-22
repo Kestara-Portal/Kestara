@@ -1,6 +1,8 @@
 import { AuthError, requireRole } from "@/lib/auth/session";
 import { jsonError, jsonOk } from "@/lib/http/responses";
+import { getApplicationsForRecruiter } from "@/lib/services/applications";
 import { createClient } from "@/lib/supabase/server";
+import { AppError } from "@/lib/utils/errors";
 
 // KP-53: POST /api/applications
 // Menyimpan lamaran milik jobseeker yang sedang login.
@@ -89,5 +91,32 @@ export async function POST(request: Request) {
 
     console.error("POST /api/applications gagal");
     return jsonError("INTERNAL_ERROR", "Gagal memproses lamaran.", 500);
+  }
+}
+
+/**
+ * GET /api/applications
+ * Mengambil daftar lamaran kandidat untuk panel Rekruter.
+ */
+export async function GET() {
+  try {
+    await requireRole(["recruiter", "admin"]);
+    const applications = await getApplicationsForRecruiter();
+    return jsonOk(applications);
+  } catch (error) {
+    if (error instanceof AuthError) {
+      return jsonError(
+        error.code,
+        error.message,
+        error.code === "UNAUTHENTICATED" ? 401 : 403,
+      );
+    }
+
+    if (error instanceof AppError) {
+      return jsonError(error.code, error.message, error.status);
+    }
+
+    console.error("GET /api/applications gagal:", error);
+    return jsonError("INTERNAL_ERROR", "Gagal memuat daftar lamaran kandidat.", 500);
   }
 }
