@@ -3,21 +3,19 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --color-brand: #dd1567;
+  --color-brand-hover: #c21259;
+  --color-brand-dark: #9f0d48;
+  --color-brand-soft: #fdf2f7;
+  --color-danger: #dc2626;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-
-  /* Kestara — Green Teal brand tokens (DEC-010 / DEC-011) */
-  --color-brand: #176b62;
-  --color-brand-hover: #145a53;
-  --color-brand-dark: #0f4c46;
-  --color-brand-soft: #e8f3f1;
-  --color-danger: #b42318;
-  --color-success: #16794a;
+@theme {
+  --color-brand: #dd1567;
+  --color-brand-hover: #c21259;
+  --color-brand-dark: #9f0d48;
+  --color-brand-soft: #fdf2f7;
+  --color-danger: #dc2626;
 }
 
 @media (prefers-color-scheme: dark) {
