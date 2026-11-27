@@ -36,16 +36,3 @@ export function jsonValidationError(
     { status: 422 },
   );
 }
-
-export function jsonValidationError(fields: Record<string, string>) {
-  return NextResponse.json(
-    {
-      error: {
-        code: "VALIDATION_ERROR",
-        message: "Data yang dikirim tidak valid. Periksa kembali isian Anda.",
-        fields,
-      },
-    },
-    { status: 422 },
-  );
-}
