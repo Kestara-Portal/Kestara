@@ -23,3 +23,16 @@ export function jsonError(
   return NextResponse.json({ error }, { status });
 }
 
+/**
+ * Validation failure with per-field messages so the client can render inline
+ * errors. Keeps the same `{ error: { code, message } }` envelope shape.
+ */
+export function jsonValidationError(
+  fieldErrors: Record<string, string>,
+  message = "Data yang dikirim belum valid.",
+) {
+  return NextResponse.json(
+    { error: { code: "VALIDATION_ERROR", message, fieldErrors } },
+    { status: 422 },
+  );
+}

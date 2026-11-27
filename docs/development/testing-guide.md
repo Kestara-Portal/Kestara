@@ -112,3 +112,10 @@ Playwright/Cypress E2E is not adopted yet. Add it only with team approval and a 
 - Runtime smoke test (`next start`): `/`, `/auth/login`, `/auth/register` return HTTP 200.
 - Local Supabase: `db reset` applied all 6 migrations cleanly and ran the seed.
 - Database / RLS / Auth / Storage integration (`npm run test:rls`): **PASS — 28/28 checks** (anon denial, own-read, cross-user denial, role/status protection, provisioning, admin escalation blocked, login/logout/session, storage isolation, suspended-account mutation/upload denial).
+
+### Current verification status (E04-C company registration / E02-U vacancy update)
+
+- `npm run typecheck`, `npm run lint`, `npm run test` (60 unit tests, 44 of them new), `npm run build`: **PASS**.
+- Unit coverage added: `tests/unit/validations/company.test.ts`, `tests/unit/validations/vacancy.test.ts`, `tests/unit/services/companies.test.ts`, `tests/unit/services/vacancies.test.ts`.
+- **Migration not applied to a Supabase stack.** Docker is unavailable in the authoring environment, so `npm run db:reset` and `npm run test:rls` could not be executed. Instead the full migration chain (E01 + `20261113000000_e02_e04_companies_vacancies.sql`) was applied to a disposable in-process PostgreSQL (PGlite, PG 17) with `auth`/`storage` stubs, and 33/33 policy checks passed: anon denial, jobseeker/mentor company-insert denial, recruiter owner-membership bootstrap, duplicate name/domain rejection, cross-company company and vacancy update denial, `company_id`/`recruiter_id` reassignment denial, `created_by` attribution denial, admin access, and closed-vacancy visibility.
+- Re-run on a real stack before the PBI is marked Done: `npm run db:reset`, then `npm run test:rls` extended with company/vacancy cases.
