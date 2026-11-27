@@ -31,7 +31,19 @@ export async function updateSession(request: NextRequest) {
   });
 
   // Do not remove: this refreshes expired tokens and keeps the session alive.
-  await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // Route protection (defense in depth; pages also verify the session).
+  const path = request.nextUrl.pathname;
+  const isProtected = path === "/profile" || path.startsWith("/jobs/new");
+  if (!user && isProtected) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/auth/login";
+    url.search = "";
+    return NextResponse.redirect(url);
+  }
 
   return response;
 }
