@@ -30,6 +30,8 @@ export default function ApplyButton({ jobId, jobTitle }: Props) {
         setResult({ ok: false, text: 'Silakan masuk terlebih dahulu.' });
       } else if (res.status === 403) {
         setResult({ ok: false, text: 'Hanya pencari kerja yang dapat melamar.' });
+      } else if (res.status === 404) {
+        setResult({ ok: false, text: 'Lowongan tidak ditemukan atau sudah ditutup.' });
       } else {
         setResult({ ok: false, text: 'Lamaran belum bisa dikirim. Coba lagi nanti.' });
       }
