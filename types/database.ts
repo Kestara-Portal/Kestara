@@ -73,3 +73,30 @@ export interface JobRow {
 }
 
 export type { AppRole, PublicRole };
+
+export const APPLICATION_STATUSES = [
+  "submitted",
+  "under_review",
+  "shortlisted",
+  "rejected",
+  "withdrawn",
+  "cancelled",
+] as const;
+
+export type ApplicationStatus = (typeof APPLICATION_STATUSES)[number];
+
+export interface JobApplicationRow {
+  id: string;
+  applicant_id: string;
+  job_id: string;
+  status: ApplicationStatus;
+  cover_letter?: string | null;
+  resume_path?: string | null;
+  withdrawal_reason: string | null;
+  created_at: string;
+  updated_at: string;
+  jobseeker_id?: string;
+  vacancy_id?: string;
+}
+
+export type ApplicationRow = JobApplicationRow;
