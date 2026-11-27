@@ -39,8 +39,8 @@ export default function RegisterPage() {
       } else {
         alert(data.message || 'Gagal mendaftar');
       }
-    } catch (error) {
-      alert('Terjadi kesalahan sistem');
+    } catch (error: any) {
+      alert('Terjadi kesalahan sistem: ' + (error?.message || 'Error'));
     } finally {
       setIsLoading(false);
     }
