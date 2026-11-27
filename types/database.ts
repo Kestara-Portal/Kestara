@@ -112,12 +112,37 @@ export const APPLICATION_STATUSES = [
   "submitted",
   "under_review",
   "shortlisted",
+  "screening",
+  "interview",
+  "assessment",
+  "accepted",
   "rejected",
   "withdrawn",
   "cancelled",
 ] as const;
 
 export type ApplicationStatus = (typeof APPLICATION_STATUSES)[number];
+
+export interface ApplicationEventRow {
+  id: string;
+  application_id: string;
+  actor_id: string | null;
+  previous_status: ApplicationStatus | null;
+  new_status: ApplicationStatus;
+  note: string | null;
+  created_at: string;
+}
+
+export interface NotificationRow {
+  id: string;
+  user_id: string;
+  title: string;
+  message: string;
+  type: string;
+  is_read: boolean;
+  reference_id: string | null;
+  created_at: string;
+}
 
 export interface JobApplicationRow {
   id: string;
@@ -126,7 +151,7 @@ export interface JobApplicationRow {
   status: ApplicationStatus;
   cover_letter?: string | null;
   resume_path?: string | null;
-  withdrawal_reason: string | null;
+  withdrawal_reason?: string | null;
   created_at: string;
   updated_at: string;
   jobseeker_id?: string;

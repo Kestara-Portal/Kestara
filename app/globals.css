@@ -10,12 +10,19 @@
   --color-danger: #dc2626;
 }
 
-@theme {
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  /* Kestara — Magenta brand tokens */
   --color-brand: #dd1567;
   --color-brand-hover: #c21259;
   --color-brand-dark: #9f0d48;
   --color-brand-soft: #fdf2f7;
   --color-danger: #dc2626;
+  --color-success: #16794a;
 }
 
 @media (prefers-color-scheme: dark) {
