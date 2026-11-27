@@ -105,6 +105,9 @@ create table if not exists public.company_memberships (
   constraint company_memberships_company_user_key unique (company_id, user_id)
 );
 
+alter table public.company_memberships
+  add column if not exists role text not null default 'member';
+
 comment on table public.company_memberships is
   'Links a recruiter to a company. Authorization for company-scoped actions is derived from this table, never from a client-supplied company id alone.';
 

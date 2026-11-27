@@ -47,6 +47,12 @@ create table if not exists public.jobs (
   updated_at     timestamptz not null default now()
 );
 
+alter table public.jobs
+  add column if not exists company_id uuid references public.companies (id) on delete cascade,
+  add column if not exists requirements text,
+  add column if not exists type text not null default 'Full-time',
+  add column if not exists salary text;
+
 create index if not exists jobs_company_id_idx on public.jobs (company_id);
 create index if not exists jobs_status_idx on public.jobs (status);
 

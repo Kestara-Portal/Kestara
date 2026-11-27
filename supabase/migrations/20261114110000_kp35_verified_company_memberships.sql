@@ -2,7 +2,7 @@
 -- Existing jobs retain NULL company_id until an approved legacy-assignment
 -- process is defined; no membership or company is inferred for historical rows.
 
-create table public.companies (
+create table if not exists public.companies (
   id uuid primary key default gen_random_uuid(),
   name text not null
     constraint companies_name_valid check (char_length(btrim(name)) between 2 and 200),
@@ -10,11 +10,12 @@ create table public.companies (
   updated_at timestamptz not null default now()
 );
 
+drop trigger if exists companies_set_updated_at on public.companies;
 create trigger companies_set_updated_at
 before update on public.companies
 for each row execute function public.set_updated_at();
 
-create table public.company_memberships (
+create table if not exists public.company_memberships (
   id uuid primary key default gen_random_uuid(),
   company_id uuid not null
     references public.companies (id) on delete restrict,
@@ -57,25 +58,33 @@ create table public.company_memberships (
   )
 );
 
-create index company_memberships_user_status_idx
+alter table public.company_memberships
+  add column if not exists membership_status text not null default 'pending',
+  add column if not exists verified_by uuid references public.users (id) on delete restrict,
+  add column if not exists verified_at timestamptz,
+  add column if not exists revoked_by uuid references public.users (id) on delete restrict,
+  add column if not exists revoked_at timestamptz;
+
+create index if not exists company_memberships_user_status_idx
   on public.company_memberships (user_id, membership_status);
-create index company_memberships_company_status_idx
+create index if not exists company_memberships_company_status_idx
   on public.company_memberships (company_id, membership_status);
 
+drop trigger if exists company_memberships_set_updated_at on public.company_memberships;
 create trigger company_memberships_set_updated_at
 before update on public.company_memberships
 for each row execute function public.set_updated_at();
 
 alter table public.jobs
-  add column company_id uuid
+  add column if not exists company_id uuid
     references public.companies (id) on delete restrict;
 
-create index jobs_company_id_idx on public.jobs (company_id);
+create index if not exists jobs_company_id_idx on public.jobs (company_id);
 
 comment on column public.jobs.company_id is
   'Company for jobs created after KP-35 membership enforcement. NULL is retained only for legacy jobs pending an approved assignment policy.';
 
-create function public.enforce_job_company_on_new_rows()
+create or replace function public.enforce_job_company_on_new_rows()
 returns trigger
 language plpgsql
 set search_path = ''
@@ -95,6 +104,7 @@ $$;
 
 revoke all on function public.enforce_job_company_on_new_rows() from public, anon, authenticated;
 
+drop trigger if exists jobs_require_company on public.jobs;
 create trigger jobs_require_company
 before insert or update of company_id on public.jobs
 for each row execute function public.enforce_job_company_on_new_rows();
@@ -102,6 +112,7 @@ for each row execute function public.enforce_job_company_on_new_rows();
 alter table public.companies enable row level security;
 alter table public.company_memberships enable row level security;
 
+drop policy if exists companies_select_verified_member on public.companies;
 create policy companies_select_verified_member
 on public.companies
 for select to authenticated
@@ -117,6 +128,7 @@ using (
   )
 );
 
+drop policy if exists company_memberships_select_own on public.company_memberships;
 create policy company_memberships_select_own
 on public.company_memberships
 for select to authenticated
@@ -141,7 +153,7 @@ grant select (
   revoked_at
 ) on public.company_memberships to authenticated;
 
-create function public.admin_verify_company_membership(p_membership_id uuid)
+create or replace function public.admin_verify_company_membership(p_membership_id uuid)
 returns void
 language plpgsql
 security definer
@@ -197,7 +209,7 @@ begin
 end;
 $$;
 
-create function public.admin_revoke_company_membership(p_membership_id uuid)
+create or replace function public.admin_revoke_company_membership(p_membership_id uuid)
 returns void
 language plpgsql
 security definer

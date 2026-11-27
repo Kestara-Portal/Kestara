@@ -57,6 +57,12 @@ create table if not exists public.jobs (
   updated_at     timestamptz not null default now()
 );
 
+alter table public.jobs
+  add column if not exists company_id uuid references public.companies (id) on delete cascade,
+  add column if not exists requirements text,
+  add column if not exists type text not null default 'Full-time',
+  add column if not exists salary text;
+
 comment on table public.jobs is
   'Lowongan pekerjaan Kestara supporting E02 module.';
 comment on column public.jobs.status is

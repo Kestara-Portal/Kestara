@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 import { roleLabel } from '@/lib/auth/roles';
@@ -35,18 +36,46 @@ function isSafeUrl(value: string | null): value is string {
   }
 }
 
-// Menu mengikuti mockup. Hanya "Profil Saya" yang aktif di KP-15; menu lain
-// adalah PBI lain sehingga dinonaktifkan dulu.
-const MENU = [
-  { label: 'Beranda', active: false },
-  { label: 'Profil Saya', active: true },
-  { label: 'Asesmen Karier', active: false },
-  { label: 'Rekomendasi Pekerjaan', active: false },
-  { label: 'Komunitas', active: false },
-  { label: 'Mentorship', active: false },
-  { label: 'Kirim Lamaran', active: false },
-  { label: 'Simpan Pekerjaan', active: false },
-];
+type MenuItem = {
+  label: string;
+  href?: string;
+  active?: boolean;
+};
+
+function getMenuItems(role?: string): MenuItem[] {
+  const items: MenuItem[] = [
+    { label: 'Beranda', href: '/dashboard', active: true },
+    { label: 'Edit Profil', href: '/profile' },
+    { label: 'Lowongan Pekerjaan', href: '/lowongan' },
+  ];
+
+  if (role === 'jobseeker') {
+    items.push({ label: 'Lamaran Saya', href: '/dashboard/jobseeker/applications' });
+  }
+
+  if (role === 'recruiter') {
+    items.push(
+      { label: 'Buat Lowongan', href: '/jobs/new' },
+      { label: 'Daftarkan Perusahaan', href: '/dashboard/company/register' },
+      { label: 'Kelola Lamaran', href: '/recruiter/applications' },
+    );
+  }
+
+  if (role === 'admin') {
+    items.push(
+      { label: 'Kelola Pengguna', href: '/admin/users' },
+      { label: 'Kelola Perusahaan', href: '/admin/companies' },
+    );
+  }
+
+  items.push(
+    { label: 'Asesmen Karier' },
+    { label: 'Komunitas' },
+    { label: 'Mentorship' },
+  );
+
+  return items;
+}
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -107,26 +136,37 @@ export default function DashboardPage() {
           </div>
 
           <nav aria-label="Menu utama" className="space-y-1">
-            {MENU.map((item) => (
-              <div
-                key={item.label}
-                aria-current={item.active ? 'page' : undefined}
-                className={
-                  item.active
-                    ? 'px-4 py-2.5 rounded-xl text-sm font-medium bg-[#176B62] text-white shadow-sm'
-                    : 'px-4 py-2.5 rounded-xl text-sm font-medium text-slate-400 cursor-not-allowed'
-                }
-              >
-                {item.label}
-              </div>
-            ))}
+            {getMenuItems(profile?.role).map((item) =>
+              item.href ? (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  aria-current={item.active ? 'page' : undefined}
+                  className={
+                    item.active
+                      ? 'block px-4 py-2.5 rounded-xl text-sm font-medium bg-[#dd1567] text-white shadow-sm'
+                      : 'block px-4 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-[#dd1567]/10 hover:text-[#dd1567] transition'
+                  }
+                >
+                  {item.label}
+                </Link>
+              ) : (
+                <div
+                  key={item.label}
+                  title="Segera hadir"
+                  className="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-400 cursor-not-allowed"
+                >
+                  {item.label}
+                </div>
+              ),
+            )}
           </nav>
         </div>
 
         <form action="/auth/logout" method="post">
           <button
             type="submit"
-            className="w-full px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 border border-slate-300 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-[#176B62] transition"
+            className="w-full px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 border border-slate-300 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-[#dd1567] transition"
           >
             Keluar
           </button>
@@ -144,7 +184,7 @@ export default function DashboardPage() {
           <form action="/auth/logout" method="post">
             <button
               type="submit"
-              className="px-3 py-2 rounded-xl text-sm font-medium text-slate-600 border border-slate-300 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-[#176B62] transition"
+              className="px-3 py-2 rounded-xl text-sm font-medium text-slate-600 border border-slate-300 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-[#dd1567] transition"
             >
               Keluar
             </button>
@@ -166,7 +206,7 @@ export default function DashboardPage() {
             <button
               type="button"
               onClick={() => window.location.reload()}
-              className="bg-[#176B62] hover:bg-[#145A53] text-white py-2.5 px-5 rounded-xl text-sm font-medium transition shadow-md focus:outline-none focus:ring-2 focus:ring-[#176B62] focus:ring-offset-2"
+              className="bg-[#dd1567] hover:bg-[#c21259] text-white py-2.5 px-5 rounded-xl text-sm font-medium transition shadow-md focus:outline-none focus:ring-2 focus:ring-[#dd1567] focus:ring-offset-2"
             >
               Muat ulang
             </button>
@@ -193,7 +233,7 @@ export default function DashboardPage() {
               <div className="flex items-center gap-4 pb-6 mb-6 border-b border-slate-200">
                 <div
                   aria-hidden="true"
-                  className="h-16 w-16 shrink-0 rounded-full bg-[#176B62] text-white text-2xl font-bold flex items-center justify-center"
+                  className="h-16 w-16 shrink-0 rounded-full bg-[#dd1567] text-white text-2xl font-bold flex items-center justify-center"
                 >
                   {initial}
                 </div>
@@ -201,7 +241,7 @@ export default function DashboardPage() {
                   <h2 id="judul-data-diri" className="text-xl font-bold text-slate-900 truncate">
                     {profile.fullName}
                   </h2>
-                  <span className="inline-block mt-1 px-3 py-1 rounded-full bg-[#176B62]/10 text-[#176B62] text-xs font-semibold">
+                  <span className="inline-block mt-1 px-3 py-1 rounded-full bg-[#dd1567]/10 text-[#dd1567] text-xs font-semibold">
                     {roleLabel(profile.role)}
                   </span>
                 </div>
@@ -274,7 +314,7 @@ export default function DashboardPage() {
                             href={item.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-sm text-[#176B62] font-medium hover:underline break-all"
+                            className="text-sm text-[#dd1567] font-medium hover:underline break-all"
                           >
                             {item.url}
                           </a>

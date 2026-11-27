@@ -174,6 +174,7 @@ export async function getMyApplications(actor: CurrentUser): Promise<MyApplicati
     .order("created_at", { ascending: false });
 
   if (error) {
+    console.error("getMyApplications failed:", error.message);
     throw new AppError("Gagal memuat daftar lamaran.", "DB_ERROR", 500);
   }
 

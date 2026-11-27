@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
+import { AppShell } from "@/components/layout/app-shell";
 import { getCurrentUser } from "@/lib/auth/session";
 import { getCompanyForEdit } from "@/lib/services/companies";
 import { AppError } from "@/lib/utils/errors";
@@ -22,35 +23,34 @@ export default function CompanyEditPage({
   params: Promise<{ id: string }>;
 }) {
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-800">
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-3xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
-          <Link
-            href="/dashboard"
-            className="flex items-center gap-1.5 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#176B62] focus-visible:ring-offset-2"
-          >
-            <span aria-hidden="true" className="text-2xl">
-              🧩
-            </span>
-            <span className="text-xl font-extrabold tracking-tight text-slate-900">
-              Kestara
-            </span>
-          </Link>
-          <Link
-            href="/dashboard"
-            className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#176B62] focus-visible:ring-offset-2"
-          >
-            Kembali ke dashboard
-          </Link>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+          <p className="text-slate-500">Memuat…</p>
         </div>
-      </header>
+      }
+    >
+      <CompanyEditPageContent params={params} />
+    </Suspense>
+  );
+}
 
+async function CompanyEditPageContent({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const user = await getCurrentUser();
+  if (!user) redirect("/auth/login");
+
+  return (
+    <AppShell user={user} title="Edit Perusahaan" activePath="/dashboard">
       <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
         <Suspense fallback={<EditPageSkeleton />}>
           <CompanyEditContent params={params} />
         </Suspense>
       </main>
-    </div>
+    </AppShell>
   );
 }
 
@@ -82,7 +82,7 @@ async function CompanyEditContent({
   return (
     <>
       <div className="mb-6">
-        <p className="text-xs font-semibold uppercase tracking-wider text-[#176B62]">
+        <p className="text-xs font-semibold uppercase tracking-wider text-[#dd1567]">
           Profil Perusahaan
         </p>
         <h1 className="mt-1 text-3xl font-bold text-slate-900">Perbarui Data Perusahaan</h1>
@@ -134,7 +134,7 @@ function AccessDeniedPanel() {
       </p>
       <Link
         href="/dashboard"
-        className="mt-5 inline-flex rounded-xl bg-[#176B62] px-5 py-2.5 text-sm font-medium text-white transition hover:bg-[#12554e] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#176B62] focus-visible:ring-offset-2"
+        className="mt-5 inline-flex rounded-xl bg-[#dd1567] px-5 py-2.5 text-sm font-medium text-white transition hover:bg-[#c21259] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#dd1567] focus-visible:ring-offset-2"
       >
         Kembali ke dashboard
       </Link>
@@ -157,7 +157,7 @@ function CompanyNotFoundPanel() {
       </p>
       <Link
         href="/dashboard"
-        className="mt-5 inline-flex rounded-xl bg-[#176B62] px-5 py-2.5 text-sm font-medium text-white transition hover:bg-[#12554e] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#176B62] focus-visible:ring-offset-2"
+        className="mt-5 inline-flex rounded-xl bg-[#dd1567] px-5 py-2.5 text-sm font-medium text-white transition hover:bg-[#c21259] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#dd1567] focus-visible:ring-offset-2"
       >
         Kembali ke dashboard
       </Link>

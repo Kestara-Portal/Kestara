@@ -37,7 +37,12 @@ export async function updateSession(request: NextRequest) {
 
   // Route protection (defense in depth; pages also verify the session).
   const path = request.nextUrl.pathname;
-  const isProtected = path === "/profile" || path.startsWith("/jobs/new");
+  const isProtected =
+    path === "/profile" ||
+    path.startsWith("/jobs/new") ||
+    path.startsWith("/dashboard") ||
+    path.startsWith("/admin") ||
+    path.startsWith("/recruiter");
   if (!user && isProtected) {
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";

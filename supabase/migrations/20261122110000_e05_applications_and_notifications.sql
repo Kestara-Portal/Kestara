@@ -24,6 +24,10 @@ create table if not exists public.applications (
   constraint applications_job_applicant_unique unique (job_id, applicant_id)
 );
 
+alter table public.applications
+  add column if not exists cover_letter text,
+  add column if not exists resume_path text;
+
 comment on table public.applications is
   'Lamaran pekerjaan pelamar untuk suatu lowongan.';
 comment on column public.applications.status is
@@ -84,12 +88,14 @@ alter table public.application_events enable row level security;
 alter table public.notifications enable row level security;
 
 -- Admin: Full access
+drop policy if exists applications_admin_all on public.applications;
 create policy applications_admin_all on public.applications
   for all to authenticated
   using (public.is_admin())
   with check (public.is_admin());
 
 -- Recruiter & Jobseeker: Scoped SELECT
+drop policy if exists applications_select_scoped on public.applications;
 create policy applications_select_scoped on public.applications
   for select to authenticated
   using (
@@ -98,16 +104,19 @@ create policy applications_select_scoped on public.applications
   );
 
 -- Recruiter: UPDATE status (KP-61)
+drop policy if exists applications_update_recruiter on public.applications;
 create policy applications_update_recruiter on public.applications
   for update to authenticated
   using (public.current_app_role() in ('recruiter', 'admin'))
   with check (public.current_app_role() in ('recruiter', 'admin'));
 
 -- Notifications: User reads their own notifications
+drop policy if exists notifications_user_own on public.notifications;
 create policy notifications_user_own on public.notifications
   for select to authenticated
   using (user_id = auth.uid());
 
+drop policy if exists notifications_user_update on public.notifications;
 create policy notifications_user_update on public.notifications
   for update to authenticated
   using (user_id = auth.uid())

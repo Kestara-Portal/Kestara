@@ -1,4 +1,6 @@
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
+import { AppShell } from "@/components/layout/app-shell";
 import { getAdminUsers } from "@/lib/auth/admin-actions";
 import { getCurrentUser } from "@/lib/auth/session";
 import { DeactivateAccountsClient } from "./deactivate-accounts-client";
@@ -8,18 +10,20 @@ export const metadata = {
 };
 
 async function AdminDeactivateUsersContent() {
-  const currentUser = (await getCurrentUser()) ?? {
-    id: "admin-system-id",
-    fullName: "Administrator Kestara",
-    role: "admin" as const,
-    accountStatus: "active",
-  };
+  const currentUser = await getCurrentUser();
+  if (!currentUser) {
+    redirect("/auth/login");
+  }
+  if (currentUser.role !== "admin") {
+    redirect("/dashboard");
+  }
 
   const users = await getAdminUsers();
 
   return (
-    <main className="min-h-screen bg-slate-50 p-6 md:p-10 font-sans text-slate-800">
-      <div className="mx-auto max-w-5xl space-y-6">
+    <AppShell user={currentUser} title="Kelola Pengguna" activePath="/admin/users">
+      <main className="p-6 md:p-10 font-sans text-slate-800">
+        <div className="mx-auto max-w-5xl space-y-6">
         {/* Header */}
         <header className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
@@ -71,6 +75,7 @@ async function AdminDeactivateUsersContent() {
         <DeactivateAccountsClient users={users} currentUserId={currentUser.id} />
       </div>
     </main>
+    </AppShell>
   );
 }
 export default function AdminDeactivateUsersPage() {

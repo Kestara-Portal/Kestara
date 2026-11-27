@@ -1,15 +1,25 @@
+import { redirect } from "next/navigation";
+
+import { AppShell } from "@/components/layout/app-shell";
+import { getCurrentUser } from "@/lib/auth/session";
+
 import { VacancyList } from "./vacancy-list";
 
 export const metadata = {
   title: "Daftar Lowongan — Kestara",
 };
 
-export default function VacanciesPage() {
+export default async function VacanciesPage() {
+  const user = await getCurrentUser();
+  if (!user) {
+    redirect("/auth/login");
+  }
+
   return (
-    <main className="min-h-screen bg-slate-50 px-6 py-10 text-slate-800">
-      <div className="mx-auto max-w-5xl space-y-6">
-        <header>
-          <p className="text-xs font-bold tracking-wider text-[#dd1567]">JOB PORTAL KESTARA</p>
+    <AppShell user={user} title="Lowongan Pekerjaan" activePath="/lowongan">
+      <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
+        <header className="mb-6">
+          <p className="text-xs font-bold tracking-wider text-brand">JOB PORTAL KESTARA</p>
           <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-slate-900 md:text-3xl">
             Temukan Lowongan Pekerjaan
           </h1>
@@ -18,7 +28,7 @@ export default function VacanciesPage() {
           </p>
         </header>
         <VacancyList />
-      </div>
-    </main>
+      </main>
+    </AppShell>
   );
 }

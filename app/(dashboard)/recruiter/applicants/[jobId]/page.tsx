@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AppShell } from "@/components/layout/app-shell";
 import { requireRole } from "@/lib/auth/session";
 import BlindScreeningView from "@/components/features/recruiter/blind-screening-view";
 import { getBlindApplicantsForJob } from "@/lib/services/blind-profile";
@@ -26,8 +27,9 @@ export default async function ApplicantsPage({
       : null;
 
   return (
-    <main className="min-h-screen bg-neutral-50 px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-6xl space-y-6">
+    <AppShell user={currentUser} title="Screening Pelamar" activePath="/recruiter/applications">
+      <main className="px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl space-y-6">
         {/* Navigation & Header */}
         <div>
           <div className="flex items-center gap-2 text-xs font-medium text-neutral-500">
@@ -134,5 +136,6 @@ export default async function ApplicantsPage({
         <BlindScreeningView job={job} initialApplicants={applicants} />
       </div>
     </main>
+    </AppShell>
   );
 }

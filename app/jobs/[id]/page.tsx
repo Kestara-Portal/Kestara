@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/auth/session";
+import { AppShell } from "@/components/layout/app-shell";
 import ApplyButton from "@/components/ApplyButton";
 import { JobManagementActions } from "@/components/jobs/job-management-actions";
 import Link from "next/link";
@@ -118,8 +119,8 @@ export default async function JobDetailPage({
   const isArchived = job.status === "archived";
   const canManage = currentUser?.role === "admin" || currentUser?.role === "recruiter";
 
-  return (
-    <div className="min-h-screen bg-slate-50 font-sans py-12 px-4 sm:px-6 lg:px-8">
+  const content = (
+    <div className="py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
         
         {/* Header Lowongan */}
@@ -272,4 +273,14 @@ export default async function JobDetailPage({
       </div>
     </div>
   );
+
+  if (currentUser) {
+    return (
+      <AppShell user={currentUser} title={job.title} activePath="/lowongan">
+        {content}
+      </AppShell>
+    );
+  }
+
+  return <div className="min-h-screen bg-slate-50 font-sans">{content}</div>;
 }
